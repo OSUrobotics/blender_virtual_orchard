@@ -1,6 +1,7 @@
 from bpy.types import PropertyGroup
 import bpy.props
-from . load_script_label import render, render_polygon
+from . load_script_label import render
+from . helpers import render_polygon
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
