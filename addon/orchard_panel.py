@@ -57,6 +57,17 @@ class My_PT_ParamsPanel(Panel):
 
         row = layout.row()
         row.prop(my_props, "tree_angle")
+        
+        layout.label(text="Polygon:")
+
+        row = layout.row(align=True)
+        row.prop(my_props, "pgon_sides")
+        row.prop(my_props, "pgon_radius")
+        row.prop(my_props, "pgon_rotation")
+
+        row = layout.row()
+        row.prop(my_props, "pgon_translation")
+
 
         for prop_name in prop_names:
             layout.prop(my_props, prop_name)

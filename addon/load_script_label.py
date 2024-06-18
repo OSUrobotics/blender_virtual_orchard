@@ -1,4 +1,5 @@
 import bpy
+from .builders import *
 from .helpers import *
 import numpy as np
 import mathutils
@@ -35,6 +36,7 @@ def render(self, context):
     )]
 
     nx, ny = (props.tree_rows, props.tree_columns)
+
     loc_x_noise = np.random.normal(0.2, 0.2, (nx,1))
     loc_y_noise = np.random.normal(0.2, 0.2, (ny,1))
 
@@ -48,12 +50,15 @@ def render(self, context):
     bpy.context.scene.render.resolution_x = props.resolution_X
     bpy.context.scene.render.resolution_y = props.resolution_Y
 
+
+
     for offset in camera_offsets:
         for tex_path in texture_paths:
             for sun_or_value in sun_or:
                 for noise_var_value in noise_var:
                     
                     clean_blender_data()
+
                     num_posts = 0
                     
                     cam = bpy.data.cameras.new("Camera")
@@ -182,4 +187,23 @@ def render(self, context):
     #            break
     #        break
     #    break
-       
+
+def render_polygon(self, context):
+    props = context.scene.my_tool
+    sides = props.pgon_sides     
+    radius = props.pgon_radius
+    rotation = props.pgon_rotation
+    translation = [
+        props.pgon_translation[0],
+        props.pgon_translation[1],
+        0.0,
+        ]
+    
+    for obj in list(bpy.data.objects):
+        if obj.name == "Polygon":
+            bpy.ops.object.select_all(action='DESELECT')
+            obj.select_set(True)
+            bpy.ops.object.delete()
+            break
+
+    create_polygon(polygon(sides, radius, rotation, translation))

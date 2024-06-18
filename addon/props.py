@@ -1,6 +1,6 @@
 from bpy.types import PropertyGroup
 import bpy.props
-from . load_script_label import render
+from . load_script_label import render, render_polygon
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
@@ -41,13 +41,41 @@ class MyProperties(PropertyGroup):
         max=100,
     )
 
-    num_sun_positions: bpy.props.IntProperty(
-        name="No. of sun positions",
-        description="Number of evenly spaced sun positions",
+    pgon_sides: bpy.props.IntProperty(
+        name="Sides",
+        description="No. of sides of polygon",
+        default=5,
+        min=3,
+        max=50,
+        update=render_polygon
+    )
+
+    pgon_radius: bpy.props.FloatProperty(
+        name="Radius",
+        description="Radius of circle encircling the polygon",
         default=1,
         min=1,
-        max=100,
-        update=render
+        max=1000,
+        step=10,
+        update=render_polygon
+    )
+
+    pgon_rotation: bpy.props.FloatProperty(
+        name="Rotation",
+        description="Orientation of polygon",
+        default=0,
+        step=10,
+        subtype="ANGLE",
+        update=render_polygon
+    )
+
+    pgon_translation: bpy.props.FloatVectorProperty(
+        name="Translation",
+        description="Translation vector of polygon",
+        default=[0, 0, 0],
+        step=10,
+        subtype="XYZ",
+        update=render_polygon
     )
 
     tree_angle: bpy.props.FloatVectorProperty(
@@ -56,6 +84,15 @@ class MyProperties(PropertyGroup):
         step=10,
         subtype="XYZ"
     )
+
+    num_sun_positions: bpy.props.IntProperty(
+        name="No. of sun positions",
+        description="Number of evenly spaced sun positions",
+        default=1,
+        min=1,
+        max=100,
+        update=render
+    )
     
     wire_spacing: bpy.props.FloatProperty(
         name="wire spacing",
@@ -63,7 +100,7 @@ class MyProperties(PropertyGroup):
         default=0.5,
         min=0,
         max=5,
-        update=render  # Reference the update function
+        update=render
     )
 
     subdivision_level: bpy.props.IntProperty(
@@ -173,7 +210,7 @@ class MyProperties(PropertyGroup):
     )
 
     cam_offset: bpy.props.FloatVectorProperty(
-        name="Angle of tree",
+        name="Cam offset",
         default=[-3, 2.8, 1.5],
         step=5,
         subtype="XYZ",
