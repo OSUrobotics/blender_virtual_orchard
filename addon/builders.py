@@ -448,3 +448,43 @@ def polygon(sides, radius, rotation, translation):
                   for point in points]
 
     return points
+
+def get_bounding_box(points):
+    if not points:
+        return []
+    
+    xs, ys, zs = zip(*points)
+    
+    # Find the bounding box coordinates
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    
+    # Check if the points form a line (1-dimensional)
+    if min_x == max_x or min_y == max_y:
+        # Calculate the length of the line
+        length = max(max_x - min_x, max_y - min_y)
+        
+        # Calculate the center of the line
+        center_x = (max_x + min_x) / 2
+        center_y = (max_y + min_y) / 2
+        
+        # Calculate the half length of the square's side
+        half_length = length / 2
+        
+        # Define the corners of the square centered around the line's center
+        bounding_box = [
+            (center_x - half_length, center_y - half_length, 0),
+            (center_x - half_length, center_y + half_length, 0),
+            (center_x + half_length, center_y + half_length, 0),
+            (center_x + half_length, center_y - half_length, 0)
+        ]
+    else:
+        # Define the corners of the bounding box
+        bounding_box = [
+            (min_x, min_y, 0),
+            (min_x, max_y, 0),
+            (max_x, max_y, 0),
+            (max_x, min_y, 0)
+        ]
+    
+    return bounding_box

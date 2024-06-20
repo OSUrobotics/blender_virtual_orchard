@@ -1,5 +1,6 @@
 import bpy
 from .builders import *
+from .helpers import *
 import numpy as np
 import mathutils
 import random
@@ -49,8 +50,6 @@ def render(self, context):
     bpy.context.scene.render.resolution_x = props.resolution_X
     bpy.context.scene.render.resolution_y = props.resolution_Y
 
-
-
     for offset in camera_offsets:
         for tex_path in texture_paths:
             for sun_or_value in sun_or:
@@ -96,12 +95,8 @@ def render(self, context):
                                 create_sun(sun_or_value)
                         # Render trees checkbox
                         if props.render_trees:
-                            # returns a regex to find given string 
-                            envy_reg = re.compile(r'envy', re.IGNORECASE)
-                            ufo_reg = re.compile(r'ufo', re.IGNORECASE)
-                            # returns true if the pattern is found in path 
-                            is_type_envy = envy_reg.search(tree_file_path)
-                            is_type_ufo = ufo_reg.search(tree_file_path)
+                            is_type_envy = "envy" in tree_file_path
+                            is_type_ufo = "ufo" in tree_file_path
                             if is_type_envy:
                                 a = np.linspace(-7.5, 2.5, nx)  
                                 b = np.linspace(-5, 5, ny)
@@ -125,13 +120,19 @@ def render(self, context):
                                 if "tree" in obj.name:
                                     tree_list.append(obj)
                             
+                            # Used for creating the rectangle holding the polygon
+                            tree_coords = []  
                             for _, obj in enumerate(tree_list):
                                 if num_trees == nx*ny*2:
                                     break
                                 if num_trees == nx*ny:
                                     num = 0
                                     orientation = tree_or
-                                x,y = (coordinate_grid[0, num], coordinate_grid[1,num]) 
+                                x,y = (coordinate_grid[0, num], coordinate_grid[1,num])
+                                
+                                tree_coords.append((x, y, 0))
+                                print(tree_coords)
+
 
                                 # Render posts checkbox
                                 if props.render_posts:
@@ -153,6 +154,29 @@ def render(self, context):
                                 
                                 num+=1
                                 num_trees+=1
+                        
+                        if props.polygon_clipping:
+                            center, half_length = get_center_and_half_length(
+                                get_bounding_box(tree_coords)
+                                    )
+                            print(center, half_length)
+
+                            create_polygon(get_bounding_box(tree_coords))
+
+                            create_polygon(
+                                polygon(
+                                props.pgon_sides,       
+                                half_length, 
+                                0,
+                                [center[0], center[1], 0]
+                                )
+                            )
+
+                            # for obj in bpy.ops.object:
+                            #     obj.rotation_euler = mathutils.Euler((0 ,0, props.orchard_roll), 'XYZ')
+
+
+                        
                         # Render ground checkbox
                         if props.render_plane:
                             new_plane((0,0,0), 1000, 'ground')
@@ -186,3 +210,13 @@ def render(self, context):
     #            break
     #        break
     #    break
+
+def orchard_rotation(self, context):
+    props = context.scene.my_tool
+    for obj in list(bpy.data.objects):
+        if "Polygon" not in obj.name:
+            # Calculate the rotation matrix around the global Z axis
+            rotation_matrix = mathutils.Matrix.Rotation(math.radians(props.orchard_roll), 4, 'Z')
+
+            # Apply the rotation matrix to the object's world matrix
+            obj.matrix_world = rotation_matrix @ obj.matrix_world

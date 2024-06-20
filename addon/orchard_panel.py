@@ -27,6 +27,13 @@ class MY_PT_OrchardPanel(Panel):
             layout.prop(my_props, prop_name)
 
         row = layout.row(align=True)
+        row.prop(my_props, "polygon_clipping")
+
+        if my_props.polygon_clipping:
+            row.prop(my_props, "pgon_sides")
+            row.prop(my_props, "orchard_roll")
+
+        row = layout.row(align=True)
         row.prop(my_props, "subdivision_level")
         row.operator("object.apply_subdivision")
 
@@ -57,17 +64,6 @@ class My_PT_ParamsPanel(Panel):
 
         row = layout.row()
         row.prop(my_props, "tree_angle")
-        
-        layout.label(text="Polygon:")
-
-        row = layout.row(align=True)
-        row.prop(my_props, "pgon_sides")
-        row.prop(my_props, "pgon_radius")
-        row.prop(my_props, "pgon_rotation")
-
-        row = layout.row()
-        row.prop(my_props, "pgon_translation")
-
 
         for prop_name in prop_names:
             layout.prop(my_props, prop_name)

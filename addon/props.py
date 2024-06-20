@@ -1,7 +1,6 @@
 from bpy.types import PropertyGroup
 import bpy.props
-from . load_script_label import render
-from . helpers import render_polygon
+from . load_script_label import render, orchard_rotation
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
@@ -26,6 +25,12 @@ class MyProperties(PropertyGroup):
         maxlen=1024,
         subtype="DIR_PATH")
 
+    polygon_clipping: bpy.props.BoolProperty(
+        name="Polygon clipping",
+        description="Clips the orchard via specified polygon",
+        default= False
+    )
+
     tree_rows: bpy.props.IntProperty(
         name="rows",
         description="Number of trees in a row of the orchard",
@@ -43,40 +48,20 @@ class MyProperties(PropertyGroup):
     )
 
     pgon_sides: bpy.props.IntProperty(
-        name="Sides",
+        name="No. of sides",
         description="No. of sides of polygon",
         default=5,
         min=3,
         max=50,
-        update=render_polygon
     )
 
-    pgon_radius: bpy.props.FloatProperty(
-        name="Radius",
-        description="Radius of circle encircling the polygon",
-        default=1,
-        min=1,
-        max=1000,
-        step=10,
-        update=render_polygon
-    )
-
-    pgon_rotation: bpy.props.FloatProperty(
-        name="Rotation",
-        description="Orientation of polygon",
+    orchard_roll: bpy.props.FloatProperty(
+        name="roll",
+        description="Roll of the entire orchard",
         default=0,
-        step=10,
+        step=100,
         subtype="ANGLE",
-        update=render_polygon
-    )
-
-    pgon_translation: bpy.props.FloatVectorProperty(
-        name="Translation",
-        description="Translation vector of polygon",
-        default=[0, 0, 0],
-        step=10,
-        subtype="XYZ",
-        update=render_polygon
+        update=orchard_rotation
     )
 
     tree_angle: bpy.props.FloatVectorProperty(

@@ -48,6 +48,7 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+    # my_tool is initialized here, any changes here needs to reflect everywhere else
     bpy.types.Scene.my_tool = bpy.props.PointerProperty(type=MyProperties)
 
 
