@@ -1,6 +1,6 @@
 from bpy.types import PropertyGroup
 import bpy.props
-from . load_script_label import render, orchard_rotation
+from . load_script_label import render
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
@@ -57,11 +57,9 @@ class MyProperties(PropertyGroup):
 
     orchard_roll: bpy.props.FloatProperty(
         name="roll",
-        description="Roll of the entire orchard",
+        description="Roll of the entire orchard in radians",
         default=0,
-        step=100,
-        subtype="ANGLE",
-        update=orchard_rotation
+        step=1
     )
 
     tree_angle: bpy.props.FloatVectorProperty(

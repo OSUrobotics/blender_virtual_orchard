@@ -12,39 +12,28 @@ def create_polygon(points):
     # Create the mesh from the points
     mesh.from_pydata(points, [], [[i for i in range(len(points))]])
 
-# def render_polygon(self, context):
-#     props = context.scene.my_tool
-#     sides = props.pgon_sides     
-#     radius = props.pgon_radius
-#     rotation = props.pgon_rotation
-#     translation = [
-#         props.pgon_translation[0],
-#         props.pgon_translation[1],
-#         0.0,
-#         ]
-    
-#     bpy.ops.object.select_all(action='DESELECT')
-#     for obj in list(bpy.data.objects):
-#         if obj.name == "Polygon":
-#             obj.select_set(True)
-#             bpy.ops.object.delete()
-#             break
+def is_point_in_polygon(point, polygon):
+    """
+    Determines if a point is inside a polygon.
 
-#     create_polygon(polygon(sides, radius, rotation, translation))
+    :param point: A tuple (x, y) representing the point to check.
+    :param polygon: A list of tuples [(x1, y1), (x2, y2), ..., (xn, yn)] representing the vertices of the polygon.
+    :return: True if the point is inside the polygon, False otherwise.
+    """
+    x, y = point
+    n = len(polygon)
+    inside = False
 
-def get_center_and_half_length(bounding_box):
-    if not bounding_box or len(bounding_box) != 4:
-        return None, None
-    
-    # Extract x and y coordinates from the bounding box corners
-    xs, ys, zs = zip(*bounding_box)
-    
-    # Calculate the center of the square
-    center_x = np.mean(xs)
-    center_y = np.mean(ys)
-    
-    # Calculate the half length of the square's side
-    # We can take the distance between the first two points (which are adjacent)
-    half_length = np.sqrt((xs[1] - xs[0])**2 + (ys[1] - ys[0])**2) / 2
-    
-    return (center_x, center_y, 0), half_length
+    p1x, p1y = polygon[0]
+    for i in range(n + 1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside

@@ -399,10 +399,11 @@ def clean_blender_data():
 def load_trees_from_folder(folder_path, num):
     num_trees = 0
 
-    for _ in range(4):
+    # Hack for now, change it later
+    for _ in range(5):
         for files in glob.glob("{}/*.x3d".format(folder_path)):
             bpy.ops.import_scene.x3d(filepath=files)
-            bpy.context.selected_objects[0].name = 'tree'
+            bpy.context.selected_objects[0].name = 'tree' + str(num_trees)
             num_trees+=1
             if num_trees == num:
                 return
@@ -411,7 +412,6 @@ def fibonacci_hemisphere(samples):
 
     points = []
     phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
-    print(phi)
 
     if samples == 1:
         points.append((0,0,0))
@@ -433,58 +433,18 @@ def fibonacci_hemisphere(samples):
 
     return points
 
-def polygon(sides, radius, rotation, translation):
-    one_segment = math.pi * 2 / sides
+def bounding_box_coords(coordinates):
+    min_x = min(point[0] for point in coordinates) + 0.05 
+    max_x = max(point[0] for point in coordinates) + 0.05
+    min_y = min(point[1] for point in coordinates) + 0.05
+    max_y = max(point[1] for point in coordinates) + 0.05
+    
+    bounding_box = [
+        (min_x, max_y, 0),
+        (max_x, max_y, 0),
+        (max_x, min_y, 0),
+        (min_x, min_y, 0)
+    ]
 
-    points = [
-        (math.sin(one_segment * i + rotation) * radius,
-         math.cos(one_segment * i + rotation) * radius,
-         0
-         )
-        for i in range(sides)]
-    
-    if translation != [0, 0, 0]:
-        points = [[sum(pair) for pair in zip(point, translation)]
-                  for point in points]
+    return bounding_box, (min_x, max_x, min_y, max_y)
 
-    return points
-
-def get_bounding_box(points):
-    if not points:
-        return []
-    
-    xs, ys, zs = zip(*points)
-    
-    # Find the bounding box coordinates
-    min_x, max_x = min(xs), max(xs)
-    min_y, max_y = min(ys), max(ys)
-    
-    # Check if the points form a line (1-dimensional)
-    if min_x == max_x or min_y == max_y:
-        # Calculate the length of the line
-        length = max(max_x - min_x, max_y - min_y)
-        
-        # Calculate the center of the line
-        center_x = (max_x + min_x) / 2
-        center_y = (max_y + min_y) / 2
-        
-        # Calculate the half length of the square's side
-        half_length = length / 2
-        
-        # Define the corners of the square centered around the line's center
-        bounding_box = [
-            (center_x - half_length, center_y - half_length, 0),
-            (center_x - half_length, center_y + half_length, 0),
-            (center_x + half_length, center_y + half_length, 0),
-            (center_x + half_length, center_y - half_length, 0)
-        ]
-    else:
-        # Define the corners of the bounding box
-        bounding_box = [
-            (min_x, min_y, 0),
-            (min_x, max_y, 0),
-            (max_x, max_y, 0),
-            (max_x, min_y, 0)
-        ]
-    
-    return bounding_box
