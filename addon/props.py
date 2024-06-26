@@ -1,6 +1,7 @@
 from bpy.types import PropertyGroup
 import bpy.props
 from . load_script_label import render
+from . builders import take_image
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
@@ -45,14 +46,6 @@ class MyProperties(PropertyGroup):
         default=1,
         min=1,
         max=100,
-    )
-
-    pgon_sides: bpy.props.IntProperty(
-        name="No. of sides",
-        description="No. of sides of polygon",
-        default=5,
-        min=3,
-        max=50,
     )
 
     orchard_roll: bpy.props.FloatProperty(
@@ -145,6 +138,12 @@ class MyProperties(PropertyGroup):
         default=True
     )
 
+    take_image: bpy.props.BoolProperty(
+        name="Take image",
+        description="Toggle if taking an image of a random tree from the orchard",
+        default= False,
+    )    
+
     focal_length: bpy.props.FloatProperty(
         name="focal length",
         description="Perspective Camera focal length value in millimeters",
@@ -199,4 +198,40 @@ class MyProperties(PropertyGroup):
         step=5,
         subtype="XYZ",
         update=render
+    )
+
+    left_right_offset: bpy.props.FloatProperty(
+        name="lr offset",
+        description="Spacing",
+        default=0.5,
+        min=0,
+        max=1,
+        update=take_image
+    )
+    
+    in_out_offset: bpy.props.FloatProperty(
+        name="io offset",
+        description="Spacing",
+        default=1,
+        min=0,
+        max=1,
+        update=take_image
+    )
+    
+    up_down_offset: bpy.props.FloatProperty(
+        name="ud offset",
+        description="Spacing",
+        default=0.5,
+        min=0,
+        max=1,
+        update=take_image
+    )
+
+    camera_angle: bpy.props.FloatVectorProperty(
+        name="Angle of camera",
+        description= "Pitch, roll, and yaw of the camera",
+        default=[-1.57, 3.14, 0],
+        step=10,
+        subtype="XYZ",
+        update=take_image
     )

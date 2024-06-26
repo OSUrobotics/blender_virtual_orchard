@@ -13,7 +13,7 @@ class MY_PT_OrchardPanel(Panel):
         layout.scale_x = 1.4
 
         scene = context.scene
-        my_props = scene.my_tool
+        props = scene.my_tool
 
         row = layout.row()
         row.operator("object.generate_orchard_operator")
@@ -24,17 +24,16 @@ class MY_PT_OrchardPanel(Panel):
         ]
         
         for prop_name in prop_names:
-            layout.prop(my_props, prop_name)
+            layout.prop(props, prop_name)
 
         row = layout.row(align=True)
-        row.prop(my_props, "polygon_clipping")
+        row.prop(props, "polygon_clipping")
 
-        if my_props.polygon_clipping:
-            row.prop(my_props, "pgon_sides")
-            row.prop(my_props, "orchard_roll")
+        if props.polygon_clipping:
+            row.prop(props, "orchard_roll")        
 
         row = layout.row(align=True)
-        row.prop(my_props, "subdivision_level")
+        row.prop(props, "subdivision_level")
         row.operator("object.apply_subdivision")
 
 class My_PT_ParamsPanel(Panel):
@@ -51,7 +50,7 @@ class My_PT_ParamsPanel(Panel):
         layout.scale_y = 1.4
         
         scene = context.scene
-        my_props = scene.my_tool
+        props = scene.my_tool
 
         prop_names = [
             "num_sun_positions",
@@ -59,14 +58,14 @@ class My_PT_ParamsPanel(Panel):
             ]
 
         row = layout.row(align=True)
-        row.prop(my_props, "tree_rows")
-        row.prop(my_props, "tree_columns")
+        row.prop(props, "tree_rows")
+        row.prop(props, "tree_columns")
 
         row = layout.row()
-        row.prop(my_props, "tree_angle")
+        row.prop(props, "tree_angle")
 
         for prop_name in prop_names:
-            layout.prop(my_props, prop_name)
+            layout.prop(props, prop_name)
     
 
 class My_PT_Render_OBJ_Panel(Panel):
@@ -83,7 +82,7 @@ class My_PT_Render_OBJ_Panel(Panel):
         layout.scale_y = 1.4
         
         scene = context.scene
-        my_props = scene.my_tool
+        props = scene.my_tool
 
         prop_names = [
             "render_trees",
@@ -97,7 +96,7 @@ class My_PT_Render_OBJ_Panel(Panel):
         col = layout.split().column(align=True)
         col.scale_y = 0.7
         for prop_name in prop_names:
-            col.prop(my_props, prop_name)
+            col.prop(props, prop_name)
 
 class My_PT_Render_Material_Panel(Panel):
     bl_label = "Render Materials"
@@ -113,7 +112,7 @@ class My_PT_Render_Material_Panel(Panel):
         layout.scale_y = 1.4
         
         scene = context.scene
-        my_props = scene.my_tool
+        props = scene.my_tool
 
         prop_names = [
             "render_tree_material",
@@ -125,4 +124,4 @@ class My_PT_Render_Material_Panel(Panel):
         col = layout.split().column(align=True)
         col.scale_y = 0.7
         for prop_name in prop_names:
-            col.prop(my_props, prop_name)
+            col.prop(props, prop_name)

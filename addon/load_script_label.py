@@ -38,8 +38,8 @@ def render(self, context):
 
     nx, ny = (props.tree_rows, props.tree_columns)
 
-    loc_x_noise = np.random.normal(0.2, 0.2, (nx,1))
-    loc_y_noise = np.random.normal(0.2, 0.2, (ny,1))
+    loc_x_noise = np.random.normal(0.1, 0.1, (nx,1))
+    loc_y_noise = np.random.normal(0.1, 0.1, (ny,1))
 
     wire_spacing = props.wire_spacing
 
@@ -70,8 +70,11 @@ def render(self, context):
 
                     num_posts = 0
                     
+                    # create the first camera object
                     cam = bpy.data.cameras.new("Camera")
                     cam_obj = bpy.data.objects.new("Camera", cam)
+                    bpy.context.scene.collection.objects.link(cam_obj)
+                    
 
                     for cam in bpy.data.cameras:
                         cam.lens = focal_length
@@ -82,7 +85,7 @@ def render(self, context):
                         create_sine(numCycles = 7, stepsPerCycle = 8, zscale=0.7,curvelen=10, offset = offset, noise_var = (0,noise_var_value,0))
                         curve = bpy.context.scene.objects["campath"]
                         # Create camera
-                        make_camera_follow_curve(cam, cam_obj, curve)
+                        make_camera_follow_curve(cam_obj, curve)
                     # Render trees checkbox
                     if props.render_trees:
                         load_trees_from_folder(tree_file_path, nx*ny*2)
@@ -197,41 +200,10 @@ def render(self, context):
                             else:
                                 create_new_material_with_texture(mat_name, plane, texture_path+'\\dirt_floor\\', 'dirt_floor')
 
-                        # TODO for tomorrow
-                        # bpy.data.objects.remove(bpy.data.objects["campath"], do_unlink=True)
-                        # selected_tree = random.choice(tree_list)
-
-                        # foo(selected_tree, cam_obj)
-
-                        # if props.generate_image:
-                        #     print(random.choice(tree_list).location)
-                        #     print(type(random.choice(tree_list).location))
-                            # cam_obj.location = random.choice(tree_list).location
-
-                # This line should run right after a complete render is done
-                # Cleans up unused data blocks to avoid memory leak
-                bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
-
-#TODO for tomorrow
-# def foo(tree, cam_obj):
-#     tree_dimensions = tree.dimensions
-#     tree_length = tree_dimensions.x
-#     tree_width = tree_dimensions.y
-#     tree_height = tree_dimensions.z
-
-#     # Define percentages for offset
-#     left_right_percentage = 0.5
-#     in_out_percentage = 1
-#     up_down_percentage = 0.5
-    
-#     offset_x = left_right_percentage * tree_length
-#     offset_y = in_out_percentage * tree_width
-#     offset_z = up_down_percentage * tree_height
-
-#     tree_location = tree.location
-
-#     camera_x = tree_location.x + offset_x
-#     camera_y = tree_location.y + offset_y
-#     camera_z = tree_location.z + offset_z
-
-#     cam_obj.location = (camera_x, camera_y, camera_z)
+                    bpy.ops.object.select_all(action="DESELECT")
+                    # This line should run right after a complete render is done
+                    # Cleans up unused data blocks to avoid memory leak and duplicate names 
+                    bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+        
+                if props.take_image:
+                    take_image(self, context)
