@@ -15,8 +15,9 @@ class MY_PT_RenderImagesPanel(Panel):
         scene = context.scene
         props = scene.my_tool
 
-        row = layout.row()
+        row = layout.row(align=True)
         row.prop(props, "take_image")
+        row.prop(props, "random_tree")
 
         layout.label(text="Camera intrinsics:")
         layout.prop(props, "focal_length")

@@ -30,7 +30,7 @@ class MY_PT_OrchardPanel(Panel):
         row.prop(props, "polygon_clipping")
 
         if props.polygon_clipping:
-            row.prop(props, "orchard_roll")        
+            row.prop(props, "orchard_yaw")        
 
         row = layout.row(align=True)
         row.prop(props, "subdivision_level")

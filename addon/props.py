@@ -1,7 +1,7 @@
 from bpy.types import PropertyGroup
 import bpy.props
 from . load_script_label import render
-from . builders import take_image
+from . generate_images import take_image
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
@@ -48,9 +48,9 @@ class MyProperties(PropertyGroup):
         max=100,
     )
 
-    orchard_roll: bpy.props.FloatProperty(
-        name="roll",
-        description="Roll of the entire orchard in radians",
+    orchard_yaw: bpy.props.FloatProperty(
+        name="yaw",
+        description="Yaw of the entire orchard to be applied as transformation in radians",
         default=0,
         step=1
     )
@@ -142,6 +142,20 @@ class MyProperties(PropertyGroup):
         name="Take image",
         description="Toggle if taking an image of a random tree from the orchard",
         default= False,
+    )
+
+    # cam_direction = bpy.props.EnumProperty(
+    #     name="Dropdown:",
+    #     description="Camera to face front or back of the tree.",
+    #     items=[ ("Front", "Option 1", "a"),
+    #             ("Back", "Option 2", "a"),
+    #            ]
+    # )
+
+    random_tree: bpy.props.BoolProperty(
+        name="random",
+        description="Toggle if taking an image of a random tree or the same one",
+        default= False,
     )    
 
     focal_length: bpy.props.FloatProperty(
@@ -203,8 +217,8 @@ class MyProperties(PropertyGroup):
     left_right_offset: bpy.props.FloatProperty(
         name="lr offset",
         description="Spacing",
-        default=0.5,
-        min=0,
+        default=0,
+        min=-1,
         max=1,
         update=take_image
     )
@@ -213,7 +227,7 @@ class MyProperties(PropertyGroup):
         name="io offset",
         description="Spacing",
         default=1,
-        min=0,
+        min=-1,
         max=1,
         update=take_image
     )
@@ -221,7 +235,7 @@ class MyProperties(PropertyGroup):
     up_down_offset: bpy.props.FloatProperty(
         name="ud offset",
         description="Spacing",
-        default=0.5,
+        default=0,
         min=0,
         max=1,
         update=take_image
@@ -230,7 +244,7 @@ class MyProperties(PropertyGroup):
     camera_angle: bpy.props.FloatVectorProperty(
         name="Angle of camera",
         description= "Pitch, roll, and yaw of the camera",
-        default=[-1.57, 3.14, 0],
+        default=[-1.57, -3.14, 0],
         step=10,
         subtype="XYZ",
         update=take_image

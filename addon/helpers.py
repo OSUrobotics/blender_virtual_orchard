@@ -13,13 +13,6 @@ def create_polygon(points):
     mesh.from_pydata(points, [], [[i for i in range(len(points))]])
 
 def is_point_in_polygon(point, polygon):
-    """
-    Determines if a point is inside a polygon.
-
-    :param point: A tuple (x, y) representing the point to check.
-    :param polygon: A list of tuples [(x1, y1), (x2, y2), ..., (xn, yn)] representing the vertices of the polygon.
-    :return: True if the point is inside the polygon, False otherwise.
-    """
     x, y = point
     n = len(polygon)
     inside = False

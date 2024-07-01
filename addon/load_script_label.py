@@ -1,6 +1,7 @@
 import bpy
 from .builders import *
 from .helpers import *
+from .generate_images import *
 import numpy as np
 import mathutils
 import random
@@ -50,6 +51,9 @@ def render(self, context):
     with open(file_path, "r") as f:
         data = json.load(f)
         pgon_coords = [tuple(coord) for coord in data["polygon_coordinates"]]
+        envy_coords = [tuple(coord) for coord in data["envy_grid_square_coordinates"]]
+        ufo_coords = [tuple(coord) for coord in data["ufo_grid_square_coordinates"]]
+        
 
     focal_length = props.focal_length
 
@@ -74,7 +78,6 @@ def render(self, context):
                     cam = bpy.data.cameras.new("Camera")
                     cam_obj = bpy.data.objects.new("Camera", cam)
                     bpy.context.scene.collection.objects.link(cam_obj)
-                    
 
                     for cam in bpy.data.cameras:
                         cam.lens = focal_length
@@ -109,22 +112,21 @@ def render(self, context):
                                 create_sun(sun_or_value)
                         # Render trees checkbox
                         if props.render_trees:
+
+                            is_type_envy = "envy" in tree_file_path
+                            is_type_ufo = "ufo" in tree_file_path
+
                             if props.polygon_clipping:
                                 bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(pgon_coords)
+                            elif is_type_envy:
+                                bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(envy_coords)
+                            elif is_type_ufo:
+                                bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(ufo_coords)
 
-                                a = np.linspace(min_x, max_x, nx)
-                                b = np.linspace(min_y, max_y, ny)
-                            else:
-                                is_type_envy = "envy" in tree_file_path
-                                is_type_ufo = "ufo" in tree_file_path
-                                if is_type_envy:
-                                    a = np.linspace(-7.5, 2.5, nx)  
-                                    b = np.linspace(-5, 5, ny)
-                                elif is_type_ufo:
-                                    a = np.linspace(-7.5, 2.5, nx) 
-                                    b = np.linspace(-10, 1, ny)
-                                
+                            a = np.linspace(min_x, max_x, nx)
+                            b = np.linspace(min_y, max_y, ny)
                             xa, xb = np.meshgrid(a, b) 
+
                         # Render wires checkbox
                         if props.render_wires:
                             create_trellis_wires(0.3 , wire_spacing, 7, loc = (0, 1), label = label, render_with_material = props.render_wire_material)
@@ -171,22 +173,26 @@ def render(self, context):
                                 num+=1
                                 num_trees+=1
                         
+                        # cam_obj.rotation_euler = mathutils.Euler((np.pi/2, 0, 0), 'XYZ')
                         if props.polygon_clipping:
+                            # remove these when done
                             create_polygon(bounding_box)
                             create_polygon(pgon_coords)
 
                             bpy.context.view_layer.update()
-                            for obj in list(bpy.data.objects):  
+                            for obj in list(bpy.data.objects):
+                                # remove this if line when done  
                                 if "Polygon" not in obj.name:
                                     # Calculate the rotation matrix around the global Z axis
-                                    rotation_matrix = mathutils.Matrix.Rotation(props.orchard_roll, 4, 'Z') 
+                                    rotation_matrix = mathutils.Matrix.Rotation(props.orchard_yaw, 4, 'Z') 
                                     # Apply the rotation matrix to the object's world matrix
                                     obj.matrix_world @= rotation_matrix
 
-                                if "tree" or "post" in obj.name:
-                                    tree_loc = obj.location
-                                    if not is_point_in_polygon((tree_loc[0], tree_loc[1]), [(x, y) for (x, y, z) in pgon_coords]):
-                                        bpy.data.objects.remove(bpy.data.objects[obj.name], do_unlink=True)
+                                # if "tree" or "post" in obj.name:
+                                #     tree_loc = obj.location
+                                #     if not is_point_in_polygon((tree_loc[0], tree_loc[1]), [(x, y) for (x, y, z) in pgon_coords]):
+                                #     # if not is_point_in_polygon((tree_loc[0], tree_loc[1]), [(x, y) for (x, y, z) in [(0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 0)]]):
+                                #         bpy.data.objects.remove(bpy.data.objects[obj.name], do_unlink=True)
 
                         # Render ground checkbox
                         if props.render_plane:
@@ -201,9 +207,12 @@ def render(self, context):
                                 create_new_material_with_texture(mat_name, plane, texture_path+'\\dirt_floor\\', 'dirt_floor')
 
                     bpy.ops.object.select_all(action="DESELECT")
-                    # This line should run right after a complete render is done
-                    # Cleans up unused data blocks to avoid memory leak and duplicate names 
-                    bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
-        
+
                 if props.take_image:
+                    # remove this line once campath is obsolete
+                    cam_obj.constraints.clear()
                     take_image(self, context)
+
+                # This line should run right after a complete render is done
+                # Cleans up unused data blocks to avoid memory leak and duplicate names 
+                bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)

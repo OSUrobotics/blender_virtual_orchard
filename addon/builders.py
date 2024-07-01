@@ -3,7 +3,6 @@ import glob
 import numpy as np
 import mathutils
 import math
-import random
 from typing import List
 
 def add_cylinder(
@@ -302,7 +301,6 @@ def create_new_material_with_texture(name, obj, texture_path, texture_name):
         obj.data.materials.append(material)
     
 def make_camera_follow_curve(cam_obj, curve):   
-    cam_obj.rotation_euler = mathutils.Euler((np.pi/2,-np.pi,-np.pi/2), 'XYZ')
 
     cam_obj.select_set(True)
     bpy.context.view_layer.objects.active = curve
@@ -429,58 +427,11 @@ def fibonacci_hemisphere(samples):
 
     return points
 
-def take_image(self, context):
-    props = context.scene.my_tool
-    tree_list = []
-    obj_list = list(bpy.data.objects)
-
-    for obj in obj_list:
-        if "tree" in obj.name:
-            tree_list.append(obj)
-
-        elif "campath" in obj.name:
-            bpy.data.objects.remove(bpy.data.objects["campath"], do_unlink=True)
-
-    cam_obj = bpy.data.objects["Camera"]
-    bpy.context.view_layer.objects.active = cam_obj
-
-    selected_tree = random.choice(tree_list)
-
-    tree_dimensions = selected_tree.dimensions
-    tree_length = tree_dimensions.x
-    tree_height = tree_dimensions.z
-    tree_spacing = 2 * math.tan(props.tree_angle[0]) * tree_height
-
-    # Define percentages for offset
-    left_right_percentage = props.left_right_offset
-    in_out_percentage = props.in_out_offset
-    up_down_percentage = props.up_down_offset
-    
-    offset_x = left_right_percentage * tree_length
-    offset_y = in_out_percentage * tree_spacing
-    offset_z = up_down_percentage * tree_height
-
-    tree_location = selected_tree.location
-
-    camera_x = tree_location.x + offset_x
-    camera_y = tree_location.y + offset_y
-    camera_z = tree_location.z + offset_z
-    cam_obj.location = (camera_x, camera_y, camera_z)
-
-    cam_obj.constraints.clear()
-
-    cam_obj.rotation_euler = mathutils.Euler(
-        (props.camera_angle[0],
-        props.camera_angle[1], 
-        props.camera_angle[2]),
-        "XYZ")
-
-
 def bounding_box_coords(coordinates):
-    min_x = min(point[0] for point in coordinates) + 0.05 
-    max_x = max(point[0] for point in coordinates) + 0.05
-    min_y = min(point[1] for point in coordinates) + 0.05
-    max_y = max(point[1] for point in coordinates) + 0.05
+    min_x = min(point[0] for point in coordinates) + 0.1 
+    max_x = max(point[0] for point in coordinates) + 0.1
+    min_y = min(point[1] for point in coordinates) + 0.1
+    max_y = max(point[1] for point in coordinates) + 0.1
     
     bounding_box = [
         (min_x, max_y, 0),
