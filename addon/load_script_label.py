@@ -53,17 +53,6 @@ def render(self, context):
         pgon_coords = [tuple(coord) for coord in data["polygon_coordinates"]]
         envy_coords = [tuple(coord) for coord in data["envy_grid_square_coordinates"]]
         ufo_coords = [tuple(coord) for coord in data["ufo_grid_square_coordinates"]]
-        
-
-    focal_length = props.focal_length
-
-    bpy.context.scene.render.pixel_aspect_x = props.aspect_X
-    bpy.context.scene.render.pixel_aspect_y = props.aspect_Y
-
-    bpy.context.scene.render.resolution_x = props.resolution_X
-    bpy.context.scene.render.resolution_y = props.resolution_Y
-
-    bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(pgon_coords)
 
     for offset in camera_offsets:
         for tex_path in texture_paths:
@@ -77,10 +66,8 @@ def render(self, context):
                     # create the first camera object
                     cam = bpy.data.cameras.new("Camera")
                     cam_obj = bpy.data.objects.new("Camera", cam)
+                    bpy.context.scene.camera = cam_obj
                     bpy.context.scene.collection.objects.link(cam_obj)
-
-                    for cam in bpy.data.cameras:
-                        cam.lens = focal_length
 
                     # Render camera checkbox
                     if props.render_cam:
@@ -99,7 +86,7 @@ def render(self, context):
                     obj_list = list(bpy.data.objects)
                     random.shuffle(obj_list)
                     tree_list = []
-                
+
                     for label in [False]:
                         # Render sky/sun checkbox
                         if props.render_sky_and_sun:
@@ -142,7 +129,6 @@ def render(self, context):
                                 if "tree" in obj.name:
                                     tree_list.append(obj)
                             
-
                             for _, obj in enumerate(tree_list):
                                 if num_trees == nx*ny*2:
                                     break
@@ -173,11 +159,11 @@ def render(self, context):
                                 num+=1
                                 num_trees+=1
                         
-                        # cam_obj.rotation_euler = mathutils.Euler((np.pi/2, 0, 0), 'XYZ')
                         if props.polygon_clipping:
-                            # remove these when done
-                            create_polygon(bounding_box)
-                            create_polygon(pgon_coords)
+
+                            if props.render_polygons:
+                                create_polygon(bounding_box)
+                                create_polygon(pgon_coords)
 
                             bpy.context.view_layer.update()
                             for obj in list(bpy.data.objects):
@@ -191,14 +177,13 @@ def render(self, context):
                                 # if "tree" or "post" in obj.name:
                                 #     tree_loc = obj.location
                                 #     if not is_point_in_polygon((tree_loc[0], tree_loc[1]), [(x, y) for (x, y, z) in pgon_coords]):
-                                #     # if not is_point_in_polygon((tree_loc[0], tree_loc[1]), [(x, y) for (x, y, z) in [(0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 0)]]):
                                 #         bpy.data.objects.remove(bpy.data.objects[obj.name], do_unlink=True)
 
                         # Render ground checkbox
                         if props.render_plane:
                             new_plane((0,0,0), 1000, 'ground')
                             plane = bpy.data.objects['ground']
-                        
+     
                         if props.render_ground_material:
                             mat_name = 'ground_color'
                             if label:

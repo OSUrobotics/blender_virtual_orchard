@@ -2,6 +2,7 @@ from bpy.types import PropertyGroup
 import bpy.props
 from . load_script_label import render
 from . generate_images import take_image
+from . helpers import change_yaw 
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
@@ -52,7 +53,8 @@ class MyProperties(PropertyGroup):
         name="yaw",
         description="Yaw of the entire orchard to be applied as transformation in radians",
         default=0,
-        step=1
+        step=1,
+        update=change_yaw
     )
 
     tree_angle: bpy.props.FloatVectorProperty(
@@ -76,8 +78,7 @@ class MyProperties(PropertyGroup):
         description="Spacing between each wire",
         default=0.5,
         min=0,
-        max=5,
-        update=render
+        max=5
     )
 
     subdivision_level: bpy.props.IntProperty(
@@ -117,6 +118,11 @@ class MyProperties(PropertyGroup):
         default=True
     )
 
+    render_polygons: bpy.props.BoolProperty(
+        name="Render polygons",
+        description="Visualization/debugging tool for polygon clipping",
+        default=False
+    )
 
     render_tree_material: bpy.props.BoolProperty(
         name="trees",
@@ -140,22 +146,29 @@ class MyProperties(PropertyGroup):
 
     take_image: bpy.props.BoolProperty(
         name="Take image",
-        description="Toggle if taking an image of a random tree from the orchard",
+        description="Toggle on if taking images of random trees from the orchard",
         default= False,
     )
 
-    # cam_direction = bpy.props.EnumProperty(
-    #     name="Dropdown:",
-    #     description="Camera to face front or back of the tree.",
-    #     items=[ ("Front", "Option 1", "a"),
-    #             ("Back", "Option 2", "a"),
-    #            ]
-    # )
-
     random_tree: bpy.props.BoolProperty(
         name="random",
-        description="Toggle if taking an image of a random tree or the same one",
+        description="""Toggle on if taking images of random trees and off for the same one.
+Useful for adjusting desired camera parameters""",
         default= False,
+    )
+
+    image_dir_path: bpy.props.StringProperty(
+        name="Images dir path",
+        description="Select the directory to store images taken",
+        default="path to dir for image storage...",
+        maxlen=1024,
+        subtype="DIR_PATH")    
+
+    num_images: bpy.props.IntProperty(
+        name="No. of images",
+        description="Number of images to be taken",
+        default=1,
+        min=0,
     )    
 
     focal_length: bpy.props.FloatProperty(
@@ -223,6 +236,22 @@ class MyProperties(PropertyGroup):
         update=take_image
     )
     
+    left_min: bpy.props.FloatProperty(
+        name="Lmin",
+        description="Spacing",
+        default=0,
+        min=-1,
+        max=1,
+    )
+    
+    right_max: bpy.props.FloatProperty(
+        name="Rmax",
+        description="Spacing",
+        default=0,
+        min=-1,
+        max=1,
+    )
+    
     in_out_offset: bpy.props.FloatProperty(
         name="io offset",
         description="Spacing",
@@ -232,6 +261,22 @@ class MyProperties(PropertyGroup):
         update=take_image
     )
     
+    in_min: bpy.props.FloatProperty(
+        name="In-min",
+        description="Spacing",
+        default=0,
+        min=-1,
+        max=1,
+    )
+    
+    out_max: bpy.props.FloatProperty(
+        name="Out-max",
+        description="Spacing",
+        default=0,
+        min=-1,
+        max=1,
+    )
+
     up_down_offset: bpy.props.FloatProperty(
         name="ud offset",
         description="Spacing",
@@ -239,6 +284,22 @@ class MyProperties(PropertyGroup):
         min=0,
         max=1,
         update=take_image
+    )
+    
+    up_max: bpy.props.FloatProperty(
+        name="Up-max",
+        description="Spacing",
+        default=0,
+        min=-1,
+        max=1,
+    )
+
+    down_min: bpy.props.FloatProperty(
+        name="Down-min",
+        description="Spacing",
+        default=0,
+        min=-1,
+        max=1,
     )
 
     camera_angle: bpy.props.FloatVectorProperty(

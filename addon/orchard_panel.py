@@ -97,6 +97,9 @@ class My_PT_Render_OBJ_Panel(Panel):
         col.scale_y = 0.7
         for prop_name in prop_names:
             col.prop(props, prop_name)
+        
+        if props.polygon_clipping:
+            col.prop(props, "render_polygons")
 
 class My_PT_Render_Material_Panel(Panel):
     bl_label = "Render Materials"

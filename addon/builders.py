@@ -301,7 +301,6 @@ def create_new_material_with_texture(name, obj, texture_path, texture_name):
         obj.data.materials.append(material)
     
 def make_camera_follow_curve(cam_obj, curve):   
-
     cam_obj.select_set(True)
     bpy.context.view_layer.objects.active = curve
     bpy.ops.object.parent_set(type='FOLLOW')

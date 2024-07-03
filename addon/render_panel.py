@@ -19,16 +19,23 @@ class MY_PT_RenderImagesPanel(Panel):
         row.prop(props, "take_image")
         row.prop(props, "random_tree")
 
-        layout.label(text="Camera intrinsics:")
-        layout.prop(props, "focal_length")
+        if props.take_image:
+            row = layout.row()
+            row.prop(props, "image_dir_path")
+            
+            row = layout.row()
+            row.prop(props, "num_images")
 
-        row = layout.row()
-        row.prop(props, "aspect_X")
-        row.prop(props, "aspect_Y")
-        
-        row = layout.row()
-        row.prop(props, "resolution_X")
-        row.prop(props, "resolution_Y")
+            layout.label(text="Camera intrinsics:")
+            layout.prop(props, "focal_length")
+
+            row = layout.row()
+            row.prop(props, "aspect_X")
+            row.prop(props, "aspect_Y")
+            
+            row = layout.row()
+            row.prop(props, "resolution_X")
+            row.prop(props, "resolution_Y")
         
         layout.label(text="Camera extrinsics:")
         row = layout.row()
@@ -36,8 +43,18 @@ class MY_PT_RenderImagesPanel(Panel):
 
         row = layout.row(align=True)
         row.prop(props, "left_right_offset")
+        row.prop(props, "left_min")
+        row.prop(props, "right_max")
+
+        row = layout.row(align=True)
         row.prop(props, "in_out_offset")
+        row.prop(props, "in_min")
+        row.prop(props, "out_max")
+
+        row = layout.row(align=True)
         row.prop(props, "up_down_offset")
+        row.prop(props, "up_max")
+        row.prop(props, "down_min")
 
         row = layout.row()
         row.prop(props, "camera_angle")
