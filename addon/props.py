@@ -3,6 +3,7 @@ import bpy.props
 from . load_script_label import render
 from . generate_images import take_image
 from . helpers import change_yaw 
+import numpy as np
 
 # This is done in VSCode to suppess warning caused by Blender Python API
 # constraints when dealing with UI related property definitions (annotations)
@@ -237,19 +238,23 @@ Useful for adjusting desired camera parameters""",
     )
     
     left_min: bpy.props.FloatProperty(
-        name="Lmin",
+        name="Left-min",
         description="Spacing",
         default=0,
         min=-1,
         max=1,
+        step=10,
+        update=take_image
     )
     
     right_max: bpy.props.FloatProperty(
-        name="Rmax",
+        name="Right-max",
         description="Spacing",
         default=0,
         min=-1,
         max=1,
+        step=10,
+        update=take_image
     )
     
     in_out_offset: bpy.props.FloatProperty(
@@ -258,6 +263,7 @@ Useful for adjusting desired camera parameters""",
         default=1,
         min=-1,
         max=1,
+        step=10,
         update=take_image
     )
     
@@ -267,6 +273,8 @@ Useful for adjusting desired camera parameters""",
         default=0,
         min=-1,
         max=1,
+        step=10,
+        update=take_image
     )
     
     out_max: bpy.props.FloatProperty(
@@ -275,12 +283,14 @@ Useful for adjusting desired camera parameters""",
         default=0,
         min=-1,
         max=1,
+        step=10,
+        update=take_image
     )
 
     up_down_offset: bpy.props.FloatProperty(
         name="ud offset",
         description="Spacing",
-        default=0,
+        default=0.5,
         min=0,
         max=1,
         update=take_image
@@ -292,6 +302,8 @@ Useful for adjusting desired camera parameters""",
         default=0,
         min=-1,
         max=1,
+        step=10,
+        update=take_image
     )
 
     down_min: bpy.props.FloatProperty(
@@ -300,6 +312,8 @@ Useful for adjusting desired camera parameters""",
         default=0,
         min=-1,
         max=1,
+        step=10,
+        update=take_image
     )
 
     camera_angle: bpy.props.FloatVectorProperty(
@@ -310,3 +324,58 @@ Useful for adjusting desired camera parameters""",
         subtype="XYZ",
         update=take_image
     )
+
+    min_x: bpy.props.FloatProperty(
+        name="X-min",
+        description="Spacing",
+        default=-np.pi/2,
+        min=-2*np.pi,
+        max=2*np.pi,
+        update=take_image
+    )
+    
+    max_x: bpy.props.FloatProperty(
+        name="X-max",
+        description="Spacing",
+        default=-np.pi/2,
+        min=-2*np.pi,
+        max=2*np.pi,
+        update=take_image
+    )
+
+    min_y: bpy.props.FloatProperty(
+        name="Y-min",
+        description="Spacing",
+        default=-np.pi,
+        min=-2*np.pi,
+        max=2*np.pi,
+        update=take_image
+    )
+    
+    max_y: bpy.props.FloatProperty(
+        name="Y-max",
+        description="Spacing",
+        default=-np.pi,
+        min=-2*np.pi,
+        max=2*np.pi,
+        update=take_image
+    )
+
+    min_z: bpy.props.FloatProperty(
+        name="Z-min",
+        description="Spacing",
+        default=0,
+        min=-2*np.pi,
+        max=2*np.pi,
+        update=take_image
+    )
+    
+    max_z: bpy.props.FloatProperty(
+        name="Z-max",
+        description="Spacing",
+        default=0,
+        min=-2*np.pi,
+        max=2*np.pi,
+        update=take_image
+    )
+

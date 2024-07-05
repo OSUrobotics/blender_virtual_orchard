@@ -12,15 +12,16 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name" : "test_addon",
-    "author" : "test",
-    "description" : "",
+    "name" : "Orchard Image Generator",
+    "author" : "Utsav Bhandari",
+    "description" : "Addon to generate virtual apple orchards and capture images for machine learning datasets.",
     "blender" : (4, 1, 1),
-    "version" : (0, 0, 1),
-    "location" : "",
+    "version" : (1, 0, 0),
+    "location" : "View3D > Tool Shelf",
     "warning" : "",
-    "category" : "Generic"
+    "category" : "Object"
 }
+
 
 import bpy
 
@@ -28,7 +29,7 @@ from .orchard_panel import MY_PT_OrchardPanel
 from .orchard_panel import My_PT_ParamsPanel
 from .orchard_panel import My_PT_Render_OBJ_Panel
 from .orchard_panel import My_PT_Render_Material_Panel
-from .render_panel import MY_PT_RenderImagesPanel
+from .image_panel import MY_PT_RenderImagesPanel
 
 from . props import MyProperties
 

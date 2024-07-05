@@ -172,7 +172,7 @@ def render(self, context):
                                     # Calculate the rotation matrix around the global Z axis
                                     rotation_matrix = mathutils.Matrix.Rotation(props.orchard_yaw, 4, 'Z') 
                                     # Apply the rotation matrix to the object's world matrix
-                                    obj.matrix_world @= rotation_matrix
+                                    obj.matrix_world = rotation_matrix @ obj.matrix_world
 
                                 # if "tree" or "post" in obj.name:
                                 #     tree_loc = obj.location

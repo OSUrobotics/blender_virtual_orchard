@@ -34,15 +34,15 @@ def is_point_in_polygon(point, polygon):
 def change_yaw(self, context):
     props = context.scene.my_tool
 
-    if len(list(bpy.data.objects)) == 0:
+    if len(bpy.data.objects) == 0:
         return
 
-    for obj in list(bpy.data.objects):
+    for obj in bpy.data.objects:
         # remove this if line when done  
         if "Polygon" not in obj.name:
             # Calculate the rotation matrix around the global Z axis
             rotation_matrix = mathutils.Matrix.Rotation(props.orchard_yaw, 4, 'Z') 
             # Apply the rotation matrix to the object's world matrix
-            obj.matrix_world @= rotation_matrix
+            obj.matrix_world = rotation_matrix @ obj.matrix_world
 
 

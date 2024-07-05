@@ -42,13 +42,14 @@ def take_image(self, context):
         tree_spacing = 2 * math.tan(props.tree_angle[0]) * tree_height
 
         # Define percentages for offset
-        left_right_percentage = props.left_right_offset
-        in_out_percentage = props.in_out_offset
-        up_down_percentage = props.up_down_offset
+        # left_right_percentage = props.left_right_offset
+        # in_out_percentage = props.in_out_offset
+        # up_down_percentage = props.up_down_offset
         
-        offset_x = left_right_percentage * tree_length
-        offset_y = in_out_percentage * tree_spacing
-        offset_z = up_down_percentage * tree_height
+        # Define uniform sampling for offset
+        offset_x = random.uniform(props.left_min, props.right_max) * tree_length
+        offset_y = random.uniform(props.in_min, props.out_max) * tree_spacing
+        offset_z = random.uniform(props.down_min, props.up_max) * tree_height
 
         tree_location = selected_tree.location
         tree_rotation_z = selected_tree.rotation_euler.z
@@ -63,19 +64,25 @@ def take_image(self, context):
 
         cam_obj.location = (camera_x, camera_y, camera_z)
 
-        # The default for the camera pitch and roll. Shouldn't be changed unless
-        # intentionally needed for variation
-        cam_obj.rotation_euler[0] = props.camera_angle[0]
-        cam_obj.rotation_euler[1] = props.camera_angle[1]
+        # cam_obj.rotation_euler[0] = props.camera_angle[0]
+        # cam_obj.rotation_euler[1] = props.camera_angle[1]
+
+        # Gaussian sampling for angles
+        camera_angle_x = random.gauss((props.min_x + props.max_x) / 2, (props.max_x - props.min_x) / 6)
+        camera_angle_y = random.gauss((props.min_y + props.max_y) / 2, (props.max_y - props.min_y) / 6)
+        camera_angle_z = random.gauss((props.min_z + props.max_z) / 2, (props.max_z - props.min_z) / 6)
+
+        cam_obj.rotation_euler[0] = camera_angle_x
+        cam_obj.rotation_euler[1] = camera_angle_y
 
         # Only change yaw of camera if specified in the panel for some reason
         # Otherwise it messes with the camera orientation
         # Sincec its default is specified as 0 in the properties
-        if props.camera_angle[2] != 0: # if not defualt
-            cam_obj.rotation_euler[2] = props.camera_angle[2]
+        if props.min_z != 0 and props.max_z != 0: # if not defualt
+            cam_obj.rotation_euler[2] = camera_angle_z
             # Offset camera's z rotation by pi if offset_y is negative
             if offset_y < 0:
-                cam_obj.rotation_euler[2] = props.camera_angle[2] + math.pi  
+                cam_obj.rotation_euler[2] = camera_angle_z + math.pi  
         else:
             cam_obj.rotation_euler[2] = tree_rotation_z
             if offset_y < 0: 
