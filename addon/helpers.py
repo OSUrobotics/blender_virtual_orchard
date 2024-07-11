@@ -45,4 +45,23 @@ def change_yaw(self, context):
             # Apply the rotation matrix to the object's world matrix
             obj.matrix_world = rotation_matrix @ obj.matrix_world
 
+# Subdivide the plane
+def subdivide_plane(obj, cuts):
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.subdivide(number_cuts=cuts)
+    bpy.ops.object.mode_set(mode='OBJECT')
 
+# Add displacement modifier with a cloud texture
+def add_displacement_modifier(obj, strength):
+    # Add displacement modifier
+    displace_modifier = obj.modifiers.new(name="Displace", type='DISPLACE')
+    
+    # Create a new texture
+    tex = bpy.data.textures.new("DisplaceTexture", type='CLOUDS')
+    
+    # Assign the texture to the displacement modifier
+    displace_modifier.texture = tex
+    
+    # Set the strength of the displacement
+    displace_modifier.strength = strength

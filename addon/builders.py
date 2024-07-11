@@ -20,10 +20,11 @@ def add_cylinder(
         scale=scale,
     )
 
-def create_post(num_posts, loc = [0,0,0], label = True, render_with_material: bool = True):
+def create_post(num_posts, orientation, loc = [0,0,0], label = True, render_with_material: bool = True):
     post_dia_m = 0.07
     post_scale = (post_dia_m/2,post_dia_m/2,5/2)
-    post_rotation = [0,0,0]
+    # post_rotation = [0,0,0]
+    post_rotation = orientation
     add_cylinder(scale=post_scale, location = loc, rotation = post_rotation)
     name = 'post{}'.format(num_posts)
     bpy.context.active_object.name = name
@@ -34,30 +35,61 @@ def create_post(num_posts, loc = [0,0,0], label = True, render_with_material: bo
             create_new_material_with_rgb_colors("post_mat",obj, (0,0,1, 1), "emission" )
         else:
             create_new_material_with_rgb_colors("post_mat",obj, (133/255 ,87/255, 35/255, 0.5), "diffuse" )
+    
+    bpy.context.view_layer.update()
+    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
             
         
     
-def create_wire(wire_count, loc = [0,0,0], label = False, render_with_material: bool = True):
-    wire_dia_m = 0.004
-    wire_scale = (wire_dia_m/2,wire_dia_m/2,10)
-    wire_rotation = [0,np.pi/2,0]
-    add_cylinder(scale=wire_scale, location = loc, rotation = wire_rotation)
-    bpy.context.active_object.name = 'wire'
-    name = 'wire{}'.format(wire_count)
-    bpy.context.active_object.name = name
-    obj = bpy.data.objects[name]
+# def create_wire(wire_count, loc, orientation, label = False, render_with_material: bool = True):
+#     wire_dia_m = 0.004
+#     wire_scale = (wire_dia_m/2,wire_dia_m/2,10)
+#     # wire_rotation = [0,np.pi/2,0]
+#     wire_rotation = orientation
+#     add_cylinder(scale=wire_scale, location = loc, rotation = wire_rotation)
+#     bpy.context.active_object.name = 'wire'
+#     name = 'wire{}'.format(wire_count)
+#     bpy.context.active_object.name = name
+#     obj = bpy.data.objects[name]
 
-    if render_with_material:
-        if label:
-            create_new_material_with_rgb_colors("wire_mat",obj, (1,0,1, 1), "emission" )
-        else:
-            create_new_material_with_rgb_colors("wire_mat",obj, (192/255 ,192/255, 192/255, 0.5), "diffuse" )
-        
-    
+#     if render_with_material:
+#         if label:
+#             create_new_material_with_rgb_colors("wire_mat",obj, (1,0,1, 1), "emission" )
+#         else:
+#             create_new_material_with_rgb_colors("wire_mat",obj, (192/255 ,192/255, 192/255, 0.5), "diffuse" )
+
 def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, loc, label = False, render_with_material: bool = True):
     for i in range(num_wires):
         create_wire(i, [loc[0],loc[1],wire_ground_offset + i*wire_spacing], label, render_with_material)
+        
+def create_wire(wire_count, loc, label = False, render_with_material: bool = True):
+    wire_dia_m = 0.004
+    wire_scale = (wire_dia_m / 2, wire_dia_m / 2, 10)
+    wire_rotation = [0, np.pi/2, 0]
+    add_cylinder(scale=wire_scale, location=loc, rotation=wire_rotation)
+    bpy.context.active_object.name = 'wire'
+    name = 'wire{}'.format(wire_count)
+    bpy.context.active_object.name = name
+    obj = bpy.data.objects[name] 
 
+    if render_with_material:
+        if label:
+            create_new_material_with_rgb_colors("wire_mat", obj, (1, 0, 1, 1), "emission")
+        else:
+            create_new_material_with_rgb_colors("wire_mat", obj, (192 / 255, 192 / 255, 192 / 255, 0.5), "diffuse")
+
+    bpy.context.view_layer.update()
+    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+ 
+
+# def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, orientation, label=False, render_with_material=True):
+#     # Center wires on the row
+#     center_x = np.mean(row_loc[0])
+#     center_y = np.mean(row_loc[1])
+    
+#     for i in range(num_wires):
+#         loc = [center_x, center_y, wire_ground_offset + i * wire_spacing]
+#         create_wire(i, loc, orientation, label, render_with_material)
 
 def create_sine(numCycles = 1, stepsPerCycle = 16, curvelen=2, zscale=1.5, offset = (0,0,0), noise_var = (0,0,0)):
 
@@ -195,7 +227,6 @@ def create_new_material_with_texture_bark(name, obj, texture_path, texture_name)
     texture_b = nodes.new( type = 'ShaderNodeTexImage')
     texture_c = nodes.new( type = 'ShaderNodeTexImage')
     texture_d = nodes.new( type = 'ShaderNodeTexImage')
-    print(texture_path)
     diff_tex = glob.glob(texture_path+'/*diff*')[0]
     disp_tex = glob.glob(texture_path+'/*disp*')[0]
     gl_tex = glob.glob(texture_path+'/*gl*')[0]
@@ -218,9 +249,7 @@ def create_new_material_with_texture_bark(name, obj, texture_path, texture_name)
     
     links.new( texture_c.outputs['Color'], normal_map.inputs['Color'])
     links.new( texture_b.outputs['Color'], displacement.inputs['Height'])
-   
-#       
-#       
+          
     links.new( diffuse.inputs['Base Color'], texture_a.outputs['Color'])
     links.new( diffuse.inputs['Roughness'], texture_d.outputs['Color'])
     links.new( diffuse.inputs['Normal'], normal_map.outputs['Normal'])
@@ -236,7 +265,7 @@ def create_new_material_with_texture_bark(name, obj, texture_path, texture_name)
         # no slots
         obj.data.materials.append(material)
     
-def create_new_material_with_texture(name, obj, texture_path, texture_name):
+def create_new_material_with_texture(name, obj, texture_path):
     materials = bpy.data.materials
     mat_name = 'mat_{}'.format(name)
     
@@ -266,12 +295,12 @@ def create_new_material_with_texture(name, obj, texture_path, texture_name):
     texture_c = nodes.new( type = 'ShaderNodeTexImage')
     texture_d = nodes.new( type = 'ShaderNodeTexImage')
    
-    texture_a.image = bpy.data.images.load(texture_path+texture_name+'_diff_4k.jpg')
+    texture_a.image = bpy.data.images.load(texture_path+'_diff_4k.jpg')
 #        texture_a.image.colorspace_settings.name = 'Non-Color'
-    texture_b.image = bpy.data.images.load(texture_path+texture_name+'_disp_4k.png')
+    texture_b.image = bpy.data.images.load(texture_path+'_disp_4k.png')
 #        texture_b.image.colorspace_settings.name = 'Non-Color'
-    texture_c.image = bpy.data.images.load(texture_path+texture_name+'_nor_gl_4k.exr')
-    texture_d.image = bpy.data.images.load(texture_path+texture_name+'_rough_4k.exr')
+    texture_c.image = bpy.data.images.load(texture_path+'_nor_gl_4k.exr')
+    texture_d.image = bpy.data.images.load(texture_path+'_rough_4k.exr')
 #        texture_d.image.colorspace_settings.name = 'Non-Color'
     links.new( mapping.outputs['Vector'], texture_a.inputs['Vector'])
     links.new( mapping.outputs['Vector'], texture_b.inputs['Vector'])
@@ -396,6 +425,8 @@ def load_trees_from_folder(folder_path, num):
     for _ in range(5):
         for files in glob.glob("{}/*.x3d".format(folder_path)):
             bpy.ops.import_scene.x3d(filepath=files)
+            bpy.context.view_layer.update()
+            bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
             bpy.context.selected_objects[0].name = 'tree' + str(num_trees)
             num_trees+=1
             if num_trees == num:
@@ -427,7 +458,7 @@ def fibonacci_hemisphere(samples):
     return points
 
 def bounding_box_coords(coordinates):
-    min_x = min(point[0] for point in coordinates) + 0.1 
+    min_x = min(point[0] for point in coordinates) + 0.1 # to account for noise
     max_x = max(point[0] for point in coordinates) + 0.1
     min_y = min(point[1] for point in coordinates) + 0.1
     max_y = max(point[1] for point in coordinates) + 0.1

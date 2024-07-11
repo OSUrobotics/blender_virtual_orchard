@@ -16,9 +16,6 @@ def render(self, context):
     
     texture_path = props.texture_path
 
-    # texture_paths = list(glob.glob(texture_path+'/bark*'))
-    texture_paths = ["C:\\Users\\Utsav Bhandari\\Documents\\blenderStuff\\virtual_orchard\\textures\\bark_brown"]
-
     # Angle of tree
     tree_or = (
         props.tree_angle[0],
@@ -48,156 +45,176 @@ def render(self, context):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, parameters_file_name)
     
+    # texture_paths = list(glob.glob(texture_path+'/bark*'))
+    # remove after finalizing
+    # tree_texture_paths = ["C:\\Users\\Utsav Bhandari\\Documents\\blenderStuff\\virtual_orchard\\textures\\bark_brown"]
+
     with open(file_path, "r") as f:
-        data = json.load(f)
-        pgon_coords = [tuple(coord) for coord in data["polygon_coordinates"]]
-        envy_coords = [tuple(coord) for coord in data["envy_grid_square_coordinates"]]
-        ufo_coords = [tuple(coord) for coord in data["ufo_grid_square_coordinates"]]
+        json_data = json.load(f)
+        
+        pgon_coords = [tuple(coord) for coord in json_data["polygon_coordinates"]]
+        envy_coords = [tuple(coord) for coord in json_data["envy_grid_square_coordinates"]]
+        ufo_coords = [tuple(coord) for coord in json_data["ufo_grid_square_coordinates"]]
+        
+        tree_texture_paths = {texture: os.path.join(texture_path, texture) for texture in json_data["random_tree_texture_file_names"]}
+        ground_texture_paths = {texture: os.path.join(texture_path, texture) for texture in json_data["random_ground_texture_file_names"]}
+
+        realistic_tree_texture = json_data["realistic_tree_texture_file_name"]
+        realistic_tree_texture_path = os.path.join(texture_path, realistic_tree_texture)
+
+        realistic_ground_texture = json_data["realistic_ground_texture_file_name"]
+        realistic_ground_texture_path = os.path.join(texture_path, realistic_ground_texture, realistic_ground_texture)
 
     for offset in camera_offsets:
-        for tex_path in texture_paths:
-            for sun_or_value in sun_or:
-                for noise_var_value in noise_var:
-                    
-                    clean_blender_data()
+        for sun_or_value in sun_or:
+            for noise_var_value in noise_var:
+                clean_blender_data()
+                
+                # create the first camera object
+                cam = bpy.data.cameras.new("Camera")
+                cam_obj = bpy.data.objects.new("Camera", cam)
+                bpy.context.scene.camera = cam_obj
+                bpy.context.scene.collection.objects.link(cam_obj)
 
+                # Render camera checkbox
+                if props.render_cam:
+                    # Create camera path
+                    create_sine(numCycles = 7, stepsPerCycle = 8, zscale=0.7,curvelen=10, offset = offset, noise_var = (0,noise_var_value,0))
+                    curve = bpy.context.scene.objects["campath"]
+                    # Create camera
+                    make_camera_follow_curve(cam_obj, curve)
+                
+                load_trees_from_folder(tree_file_path, nx*ny*2)
+
+                #Set np seed
+                random.seed()
+
+                obj_list = list(bpy.data.objects)
+                random.shuffle(obj_list)
+                tree_list = []
+
+                for label in [False]:
+                    # Render wires checkbox
+                    if props.render_wires:
+                        create_trellis_wires(0.3 , wire_spacing, 7, loc = (0, 1), label = label, render_with_material = props.render_wire_material)
+                    
+                    # Render sky/sun checkbox
+                    if props.render_sky_and_sun:
+                        if label:
+                            mat_type = "emission"
+                            create_sky_color()
+                        else:
+                            mat_type = "diffuse"
+                            create_sky_texture()
+                            create_sun(sun_or_value)
+
+                    is_type_envy = "envy" in tree_file_path
+                    is_type_ufo = "ufo" in tree_file_path
+
+                    if props.polygon_clipping:
+                        bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(pgon_coords)
+                    elif is_type_envy:
+                        bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(envy_coords)
+                    elif is_type_ufo:
+                        bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(ufo_coords)
+
+                    a = np.linspace(min_x, max_x, nx)
+                    b = np.linspace(min_y, max_y, ny)
+                    xa, xb = np.meshgrid(a, b) 
+
+                    coordinate_grid = np.array([xa, xb]).reshape(2,-1)
+                    
+                    for obj in obj_list:
+                        if "tree" in obj.name:
+                            tree_list.append(obj)
+
+                    num = 0
+                    num_trees = 0
+                    orientation = (-tree_or[0], 0, 0)
                     num_posts = 0
-                    
-                    # create the first camera object
-                    cam = bpy.data.cameras.new("Camera")
-                    cam_obj = bpy.data.objects.new("Camera", cam)
-                    bpy.context.scene.camera = cam_obj
-                    bpy.context.scene.collection.objects.link(cam_obj)
-
-                    # Render camera checkbox
-                    if props.render_cam:
-                        # Create camera path
-                        create_sine(numCycles = 7, stepsPerCycle = 8, zscale=0.7,curvelen=10, offset = offset, noise_var = (0,noise_var_value,0))
-                        curve = bpy.context.scene.objects["campath"]
-                        # Create camera
-                        make_camera_follow_curve(cam_obj, curve)
-                    # Render trees checkbox
-                    if props.render_trees:
-                        load_trees_from_folder(tree_file_path, nx*ny*2)
-                    
-                    #Set np seed
-                    random.seed()
-                    
-                    obj_list = list(bpy.data.objects)
-                    random.shuffle(obj_list)
-                    tree_list = []
-
-                    for label in [False]:
-                        # Render sky/sun checkbox
-                        if props.render_sky_and_sun:
-                            if label:
-                                mat_type = "emission"
-                                create_sky_color()
-                            else:
-                                mat_type = "diffuse"
-                                create_sky_texture()
-                                create_sun(sun_or_value)
-                        # Render trees checkbox
-                        if props.render_trees:
-
-                            is_type_envy = "envy" in tree_file_path
-                            is_type_ufo = "ufo" in tree_file_path
-
-                            if props.polygon_clipping:
-                                bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(pgon_coords)
-                            elif is_type_envy:
-                                bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(envy_coords)
-                            elif is_type_ufo:
-                                bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(ufo_coords)
-
-                            a = np.linspace(min_x, max_x, nx)
-                            b = np.linspace(min_y, max_y, ny)
-                            xa, xb = np.meshgrid(a, b) 
-
-                        # Render wires checkbox
-                        if props.render_wires:
-                            create_trellis_wires(0.3 , wire_spacing, 7, loc = (0, 1), label = label, render_with_material = props.render_wire_material)
-                        # Render trees checkbox
-                        if props.render_trees:
-                            coordinate_grid = np.array([xa, xb]).reshape(2,-1)
-                            
+                    for _, obj in enumerate(tree_list):
+                        if num_trees == nx*ny:
                             num = 0
-                            num_trees = 0
-                            orientation = (-tree_or[0], 0, 0)
-                            
-                            for obj in obj_list:
-                                if "tree" in obj.name:
-                                    tree_list.append(obj)
-                            
-                            for _, obj in enumerate(tree_list):
-                                if num_trees == nx*ny*2:
-                                    break
-                                if num_trees == nx*ny:
-                                    num = 0
-                                    orientation = tree_or
-                                x,y = (coordinate_grid[0, num], coordinate_grid[1,num])
-                                
-                                # Render posts checkbox
-                                if props.render_posts:
-                                    #post distance from tree variable
-                                    create_post(num_posts, loc = (x,y,1), label = label, render_with_material = props.render_post_material)
-                                    num_posts += 1
+                            orientation = tree_or
 
-                                obj.location = mathutils.Vector((x+loc_x_noise[num%nx], y+loc_y_noise[num%ny], 0))
-                                obj.rotation_euler = mathutils.Euler((orientation), 'XYZ')
-                                
-                                
-                                if props.render_tree_material:
-                                    if label:
-                                        if y != coordinate_grid[1,-1] or orientation[0] == tree_or[0]:
-                                            create_new_material_with_rgb_colors(num_trees, obj, (0, 0, 0, 0), mat_type)
-                                        else:
-                                            create_new_material_with_vertex_colors(num_trees, obj, mat_type)
-                                    else:
-                                        create_new_material_with_texture_bark('texture', obj, tex_path, 'bark_willow')
-                                
-                                num+=1
-                                num_trees+=1
+                        x,y = (coordinate_grid[0, num], coordinate_grid[1,num])
                         
-                        if props.polygon_clipping:
-
-                            if props.render_polygons:
-                                create_polygon(bounding_box)
-                                create_polygon(pgon_coords)
-
-                            bpy.context.view_layer.update()
-                            for obj in list(bpy.data.objects):
-                                # remove this if line when done  
-                                if "Polygon" not in obj.name:
-                                    # Calculate the rotation matrix around the global Z axis
-                                    rotation_matrix = mathutils.Matrix.Rotation(props.orchard_yaw, 4, 'Z') 
-                                    # Apply the rotation matrix to the object's world matrix
-                                    obj.matrix_world = rotation_matrix @ obj.matrix_world
-
-                                # if "tree" or "post" in obj.name:
-                                #     tree_loc = obj.location
-                                #     if not is_point_in_polygon((tree_loc[0], tree_loc[1]), [(x, y) for (x, y, z) in pgon_coords]):
-                                #         bpy.data.objects.remove(bpy.data.objects[obj.name], do_unlink=True)
-
-                        # Render ground checkbox
-                        if props.render_plane:
-                            new_plane((0,0,0), 1000, 'ground')
-                            plane = bpy.data.objects['ground']
-     
-                        if props.render_ground_material:
-                            mat_name = 'ground_color'
+                        obj.location = mathutils.Vector((x+loc_x_noise[num%nx], y+loc_y_noise[num%ny], 0))
+                        obj.rotation_euler = mathutils.Euler((orientation), 'XYZ')
+                        
+                        # Render posts checkbox
+                        if props.render_posts:
+                            #post distance from tree variable
+                            create_post(num_posts, orientation= orientation, loc = (x,y,1), label = label, render_with_material = props.render_post_material)
+                            num_posts += 1
+                        
+                        if props.render_tree_material:
                             if label:
-                                create_new_material_with_rgb_colors(mat_name, plane, (0.6,0.2,0.,1), mat_type)
+                                if y != coordinate_grid[1,-1] or orientation[0] == tree_or[0]:
+                                    create_new_material_with_rgb_colors(num_trees, obj, (0, 0, 0, 0), mat_type)
+                                else:
+                                    create_new_material_with_vertex_colors(num_trees, obj, mat_type)
                             else:
-                                create_new_material_with_texture(mat_name, plane, texture_path+'\\dirt_floor\\', 'dirt_floor')
+                                if props.random_textures:
+                                    texture_name, path = random.choice(list(tree_texture_paths.items()))
+                                    create_new_material_with_texture_bark('texture', obj, path, texture_name)
+                                else:
+                                    create_new_material_with_texture_bark('texture', obj, realistic_tree_texture_path, realistic_tree_texture)
+
+                        num+=1
+                        num_trees+=1
+
+                    # Render ground checkbox
+                    if props.render_plane:
+                        new_plane((0,0,0), 500, 'ground')
+                        plane = bpy.data.objects['ground']
+                        # bumpy terrain
+                        subdivide_plane(plane, 10)
+                        subdivide_plane(plane, 10)
+                        add_displacement_modifier(plane, props.plane_unevenness)
+
+                    if props.render_ground_material:
+                        mat_name = 'ground_color'
+                        if label:
+                            create_new_material_with_rgb_colors(mat_name, plane, (0.6,0.2,0.,1), mat_type)
+                        else:
+                            if props.random_textures:
+                                texture_name, path = random.choice(list(ground_texture_paths.items()))
+                                tex_path = os.path.join(path, texture_name)
+                                create_new_material_with_texture(mat_name, plane, tex_path)
+                            else: 
+                                create_new_material_with_texture(mat_name, plane, realistic_ground_texture_path)
+
+                            # create_new_material_with_texture(mat_name, plane, texture_path+'\\dirt_floor\\', 'dirt_floor')
+
+                    if props.polygon_clipping:
+
+                        if props.render_polygons:
+                            create_polygon(bounding_box)
+                            create_polygon(pgon_coords)
+
+                        bpy.context.view_layer.update()
+                        for obj in list(bpy.data.objects):
+                            # Don't rotate the polygons if visualizing  
+                            if "Polygon" not in obj.name:
+                                # Calculate the rotation matrix around the global Z axis
+                                rotation_matrix = mathutils.Matrix.Rotation(props.orchard_yaw, 4, 'Z') 
+                                # Apply the rotation matrix to the object's world matrix
+                                obj.matrix_world = rotation_matrix @ obj.matrix_world
+
+                            if "tree" or "post" in obj.name:
+                                tree_loc = obj.location
+                                # point is not inside polygon
+                                if not is_point_in_polygon((tree_loc[0], tree_loc[1]), [(x, y) for (x, y, z) in pgon_coords]):
+                                    bpy.data.objects.remove(bpy.data.objects[obj.name], do_unlink=True)
 
                     bpy.ops.object.select_all(action="DESELECT")
 
-                if props.take_image:
-                    # remove this line once campath is obsolete
-                    cam_obj.constraints.clear()
-                    take_image(self, context)
+                    if props.snap_image:
+                        # remove this line once campath is obsolete
+                        cam_obj.constraints.clear()
+                        take_images(self, context)
 
-                # This line should run right after a complete render is done
-                # Cleans up unused data blocks to avoid memory leak and duplicate names 
-                bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+                    # This line should run right after a complete render is done
+                    # Cleans up unused data blocks to avoid memory leak and duplicate names 
+                    bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)

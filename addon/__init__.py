@@ -33,7 +33,7 @@ from .image_panel import MY_PT_RenderImagesPanel
 
 from . props import MyProperties
 
-from . ops import OBJECT_OT_apply_subdivision, GenerateOrchardOperator
+from . ops import OBJECT_OT_apply_subdivision, GenerateOrchardOperator, OBJECT_OT_take_image
 
 classes = (
     MY_PT_OrchardPanel,
@@ -43,7 +43,8 @@ classes = (
     MY_PT_RenderImagesPanel,
     MyProperties,
     OBJECT_OT_apply_subdivision,
-    GenerateOrchardOperator
+    GenerateOrchardOperator,
+    OBJECT_OT_take_image
 )
 
 def register():

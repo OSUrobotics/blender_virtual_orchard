@@ -15,11 +15,16 @@ class MY_PT_RenderImagesPanel(Panel):
         scene = context.scene
         props = scene.my_tool
 
-        row = layout.row(align=True)
-        row.prop(props, "take_image")
-        row.prop(props, "random_tree")
 
-        if props.take_image:
+        row = layout.row()
+        row.operator("object.take_images")
+
+        row = layout.row(align=True)
+        row.prop(props, "snap_image")
+        row.prop(props, "random_tree")
+        row.prop(props, "image_pairs")
+
+        if props.snap_image:
             row = layout.row()
             row.prop(props, "image_dir_path")
             
@@ -41,27 +46,22 @@ class MY_PT_RenderImagesPanel(Panel):
         row = layout.row()
         row.prop(props, "cam_offset")
 
+        layout.label(text="Toggle off take image before manipulating the following:")
         layout.label(text="Cam location:")
 
         row = layout.row(align=True)
-        # row.prop(props, "left_right_offset")
         row.prop(props, "left_min")
         row.prop(props, "right_max")
 
         row = layout.row(align=True)
-        # row.prop(props, "in_out_offset")
         row.prop(props, "in_min")
         row.prop(props, "out_max")
 
         row = layout.row(align=True)
-        # row.prop(props, "up_down_offset")
         row.prop(props, "down_min")
         row.prop(props, "up_max")
 
         layout.label(text="Cam angles:")
-
-        # row = layout.row()
-        # row.prop(props, "camera_angle")
 
         row = layout.row(align=True)
         row.prop(props, "min_x")

@@ -19,6 +19,23 @@
       [2.5, 0.5, 0],
       [2, -7, 0],
       [0, -7, 0]
-    ]
-  }
+    ],
+
+  "random_tree_texture_file_names": [
+      "bark_brown",
+      "bark_palm_tree",
+      "bark_willow",
+      "bark_willow_02"
+    ],
+
+  "realistic_tree_texture_file_name":
+      "bark_brown",
+    
+  "random_ground_texture_file_names": [
+      "dirt_floor"
+    ],
+
+  "realistic_ground_texture_file_name":
+      "dirt_floor"
+}
   

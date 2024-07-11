@@ -1,7 +1,6 @@
 from bpy.types import PropertyGroup
 import bpy.props
-from . load_script_label import render
-from . generate_images import take_image
+from . generate_images import take_images
 from . helpers import change_yaw 
 import numpy as np
 
@@ -28,6 +27,19 @@ class MyProperties(PropertyGroup):
         maxlen=1024,
         subtype="DIR_PATH")
 
+    random_textures: bpy.props.BoolProperty(
+        name="Random textures",
+        description="Toggle on to use random textures for trees and gorund and off to use single realistic texture",
+        default= False
+    )
+
+    plane_unevenness: bpy.props.FloatProperty(
+        name="Plane unevenness",
+        description="Controls the bumpyness of the plane",
+        default=2.5,
+        min=0,
+    )
+
     polygon_clipping: bpy.props.BoolProperty(
         name="Polygon clipping",
         description="Clips the orchard via specified polygon",
@@ -39,7 +51,7 @@ class MyProperties(PropertyGroup):
         description="Number of trees in a row of the orchard",
         default=1,
         min=1,
-        max=100,
+        max=500
     )
 
     tree_columns: bpy.props.IntProperty(
@@ -47,7 +59,7 @@ class MyProperties(PropertyGroup):
         description="Number of trees in a column of the orchard",
         default=1,
         min=1,
-        max=100,
+        max=500
     )
 
     orchard_yaw: bpy.props.FloatProperty(
@@ -71,7 +83,6 @@ class MyProperties(PropertyGroup):
         default=1,
         min=1,
         max=100,
-        update=render
     )
     
     wire_spacing: bpy.props.FloatProperty(
@@ -81,17 +92,12 @@ class MyProperties(PropertyGroup):
         min=0,
         max=5
     )
-
+    
     subdivision_level: bpy.props.IntProperty(
         name="Subdiv. Level",
         default=0,
         min=0,
         max=6
-    )
-
-    render_trees: bpy.props.BoolProperty(
-        name="Render trees",
-        default=True
     )
 
     render_cam: bpy.props.BoolProperty(
@@ -145,7 +151,13 @@ class MyProperties(PropertyGroup):
         default=True
     )
 
-    take_image: bpy.props.BoolProperty(
+    orchard_generated: bpy.props.BoolProperty(
+        name="Orchard generated",
+        description= "Flag to check if orchard has done generating",
+        default=False
+    )
+
+    snap_image: bpy.props.BoolProperty(
         name="Take image",
         description="Toggle on if taking images of random trees from the orchard",
         default= False,
@@ -155,6 +167,12 @@ class MyProperties(PropertyGroup):
         name="random",
         description="""Toggle on if taking images of random trees and off for the same one.
 Useful for adjusting desired camera parameters""",
+        default= True,
+    )
+
+    image_pairs: bpy.props.BoolProperty(
+        name="Do pairs",
+        description="Toggle on if taking pairs of images of trees from the orchard",
         default= False,
     )
 
@@ -222,98 +240,70 @@ Useful for adjusting desired camera parameters""",
 
     cam_offset: bpy.props.FloatVectorProperty(
         name="Cam offset",
+        description= "Campath offset",
         default=[-3, 2.8, 1.5],
         step=5,
         subtype="XYZ",
-        update=render
-    )
-
-    left_right_offset: bpy.props.FloatProperty(
-        name="lr offset",
-        description="Spacing",
-        default=0,
-        min=-1,
-        max=1,
-        update=take_image
     )
     
     left_min: bpy.props.FloatProperty(
         name="Left-min",
-        description="Spacing",
+        description="Minimum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
         default=0,
         min=-1,
         max=1,
         step=10,
-        update=take_image
+        update=take_images
     )
     
     right_max: bpy.props.FloatProperty(
         name="Right-max",
-        description="Spacing",
+        description="Maximum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
         default=0,
         min=-1,
         max=1,
         step=10,
-        update=take_image
-    )
-    
-    in_out_offset: bpy.props.FloatProperty(
-        name="io offset",
-        description="Spacing",
-        default=1,
-        min=-1,
-        max=1,
-        step=10,
-        update=take_image
+        update=take_images
     )
     
     in_min: bpy.props.FloatProperty(
         name="In-min",
-        description="Spacing",
-        default=0,
+        description="Minimum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
+        default=1,
         min=-1,
         max=1,
         step=10,
-        update=take_image
+        update=take_images
     )
     
     out_max: bpy.props.FloatProperty(
         name="Out-max",
-        description="Spacing",
-        default=0,
+        description="Maximum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
+        default=1,
         min=-1,
         max=1,
         step=10,
-        update=take_image
-    )
-
-    up_down_offset: bpy.props.FloatProperty(
-        name="ud offset",
-        description="Spacing",
-        default=0.5,
-        min=0,
-        max=1,
-        update=take_image
-    )
-    
-    up_max: bpy.props.FloatProperty(
-        name="Up-max",
-        description="Spacing",
-        default=0,
-        min=-1,
-        max=1,
-        step=10,
-        update=take_image
+        update=take_images
     )
 
     down_min: bpy.props.FloatProperty(
         name="Down-min",
-        description="Spacing",
-        default=0,
-        min=-1,
+        description="Minimum distance the camera is placed from the tree's origin in this direction. Goes form 0 to 1",
+        default=0.5,
+        min=0,
         max=1,
         step=10,
-        update=take_image
+        update=take_images
+    )
+
+    up_max: bpy.props.FloatProperty(
+        name="Up-max",
+        description="Maximum distance the camera is placed from the tree's origin in this direction. Goes form 0 to 1",
+        default=0.5,
+        min=0,
+        max=1,
+        step=10,
+        update=take_images
     )
 
     camera_angle: bpy.props.FloatVectorProperty(
@@ -322,60 +312,60 @@ Useful for adjusting desired camera parameters""",
         default=[-1.57, -3.14, 0],
         step=10,
         subtype="XYZ",
-        update=take_image
+        update=take_images
     )
 
     min_x: bpy.props.FloatProperty(
         name="X-min",
-        description="Spacing",
+        description="Minimum angle the camera might face in this axis",
         default=-np.pi/2,
         min=-2*np.pi,
         max=2*np.pi,
-        update=take_image
+        update=take_images
     )
     
     max_x: bpy.props.FloatProperty(
         name="X-max",
-        description="Spacing",
+        description="Maximum angle the camera might face in this axis",
         default=-np.pi/2,
         min=-2*np.pi,
         max=2*np.pi,
-        update=take_image
+        update=take_images
     )
 
     min_y: bpy.props.FloatProperty(
         name="Y-min",
-        description="Spacing",
+        description="Minimum angle the camera might face in this axis",
         default=-np.pi,
         min=-2*np.pi,
         max=2*np.pi,
-        update=take_image
+        update=take_images
     )
     
     max_y: bpy.props.FloatProperty(
         name="Y-max",
-        description="Spacing",
+        description="Maximum angle the camera might face in this axis",
         default=-np.pi,
         min=-2*np.pi,
         max=2*np.pi,
-        update=take_image
+        update=take_images
     )
 
     min_z: bpy.props.FloatProperty(
         name="Z-min",
-        description="Spacing",
+        description="Minimum angle the camera might face in this axis",
         default=0,
         min=-2*np.pi,
         max=2*np.pi,
-        update=take_image
+        update=take_images
     )
     
     max_z: bpy.props.FloatProperty(
         name="Z-max",
-        description="Spacing",
+        description="Maximum angle the camera might face in this axis",
         default=0,
         min=-2*np.pi,
         max=2*np.pi,
-        update=take_image
+        update=take_images
     )
 

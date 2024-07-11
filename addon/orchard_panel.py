@@ -20,11 +20,15 @@ class MY_PT_OrchardPanel(Panel):
 
         prop_names = [
             "tree_file_path", 
-            "texture_path"
+            "texture_path",
         ]
+        row = layout.row()
+        row.prop(props, "random_textures")
+        row.prop(props, "plane_unevenness")
         
         for prop_name in prop_names:
             layout.prop(props, prop_name)
+
 
         row = layout.row(align=True)
         row.prop(props, "polygon_clipping")
@@ -85,7 +89,6 @@ class My_PT_Render_OBJ_Panel(Panel):
         props = scene.my_tool
 
         prop_names = [
-            "render_trees",
             "render_cam", 
             "render_wires",
             "render_sky_and_sun", 
