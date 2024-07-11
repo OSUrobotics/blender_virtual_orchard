@@ -2,7 +2,7 @@ import bpy
 import random
 import math
 
-def take_image(self, context):
+def take_images(self, context):
     props = context.scene.my_tool
 
     focal_length = props.focal_length
@@ -40,11 +40,6 @@ def take_image(self, context):
         tree_length = tree_dimensions.x
         tree_height = tree_dimensions.z
         tree_spacing = 2 * math.tan(props.tree_angle[0]) * tree_height
-
-        # Define percentages for offset
-        # left_right_percentage = props.left_right_offset
-        # in_out_percentage = props.in_out_offset
-        # up_down_percentage = props.up_down_offset
         
         # Define uniform sampling for offset
         offset_x = random.uniform(props.left_min, props.right_max) * tree_length
@@ -64,10 +59,7 @@ def take_image(self, context):
 
         cam_obj.location = (camera_x, camera_y, camera_z)
 
-        # cam_obj.rotation_euler[0] = props.camera_angle[0]
-        # cam_obj.rotation_euler[1] = props.camera_angle[1]
-
-        # Gaussian sampling for angles
+        # Gaussian sampling for angle, adjust the SD according to your needs
         camera_angle_x = random.gauss((props.min_x + props.max_x) / 2, (props.max_x - props.min_x) / 6)
         camera_angle_y = random.gauss((props.min_y + props.max_y) / 2, (props.max_y - props.min_y) / 6)
         camera_angle_z = random.gauss((props.min_z + props.max_z) / 2, (props.max_z - props.min_z) / 6)
@@ -88,8 +80,20 @@ def take_image(self, context):
             if offset_y < 0: 
                 cam_obj.rotation_euler[2] = tree_rotation_z + math.pi
             
-        if props.take_image:
-            # Render the image and save it
+        if props.snap_image:
+            # taking pairs of images
+            if props.image_pairs:
+                bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1.png"
+                bpy.ops.render.render(write_still=True)
+                
+                # Slight variation in camera's location for the second image
+                slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
+                cam_obj.location = (camera_x + slight_variation, camera_y + slight_variation, camera_z + slight_variation)
+                bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_2.png"
+                bpy.ops.render.render(write_still=True)
+                continue
+
+            # Render the image and save it. Change the formatting to suit your needs
             bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}.png"
             bpy.ops.render.render(write_still=True)
 
