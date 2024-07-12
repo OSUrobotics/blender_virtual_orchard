@@ -21,7 +21,7 @@ def add_cylinder(
         scale=scale,
     )
 
-def create_post(num_posts, orientation, loc = [0,0,0], label = True, render_with_material: bool = True):
+def create_post(num_posts, orientation, loc = [0,0,0], label = True):
     post_dia_m = 0.07
     post_scale = (post_dia_m/2,post_dia_m/2,5/2)
     # post_rotation = [0,0,0]
@@ -30,12 +30,11 @@ def create_post(num_posts, orientation, loc = [0,0,0], label = True, render_with
     name = 'post{}'.format(num_posts)
     bpy.context.active_object.name = name
     obj = bpy.data.objects[name]
-
-    if render_with_material:
-        if label:
-            create_new_material_with_rgb_colors("post_mat",obj, (0,0,1, 1), "emission" )
-        else:
-            create_new_material_with_rgb_colors("post_mat",obj, (133/255 ,87/255, 35/255, 0.5), "diffuse" )
+    
+    if label:
+        create_new_material_with_rgb_colors("post_mat",obj, (0,0,1, 1), "emission" )
+    else:
+        create_new_material_with_rgb_colors("post_mat",obj, (133/255 ,87/255, 35/255, 0.5), "diffuse" )
     
     load_scene()
             
@@ -61,14 +60,14 @@ def create_wire(wire_count, loc, label = False):
     load_scene()
  
 
-# def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, orientation, label=False, render_with_material=True):
+# def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, orientation, label=False):
 #     # Center wires on the row
 #     center_x = np.mean(row_loc[0])
 #     center_y = np.mean(row_loc[1])
     
 #     for i in range(num_wires):
 #         loc = [center_x, center_y, wire_ground_offset + i * wire_spacing]
-#         create_wire(i, loc, orientation, label, render_with_material)
+#         create_wire(i, loc, orientation, label)
 
 def create_sine(numCycles = 1, stepsPerCycle = 16, curvelen=2, zscale=1.5, offset = (0,0,0), noise_var = (0,0,0)):
 

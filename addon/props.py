@@ -132,26 +132,6 @@ class MyProperties(PropertyGroup):
         default=False
     )
 
-    render_tree_material: bpy.props.BoolProperty(
-        name="trees",
-        default=True
-    )
-
-    render_ground_material: bpy.props.BoolProperty(
-        name="ground",
-        default=True
-    )
-
-    render_post_material: bpy.props.BoolProperty(
-        name="posts",
-        default=True
-    )
-    
-    render_wire_material: bpy.props.BoolProperty(
-        name="wires",
-        default=True
-    )
-
     orchard_generated: bpy.props.BoolProperty(
         name="Orchard generated",
         description= "Flag to check if orchard has done generating",

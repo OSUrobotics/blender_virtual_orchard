@@ -96,7 +96,7 @@ def render(self, context):
                 for label in [False]:
                     # Render wires checkbox
                     if props.render_wires:
-                        create_trellis_wires(0.3 , wire_spacing, 7, loc = (0, 1), label = label, render_with_material = props.render_wire_material)
+                        create_trellis_wires(0.3 , wire_spacing, 7, loc = (0, 1), label = label)
                     
                     # Render sky/sun checkbox
                     if props.render_sky_and_sun:
@@ -145,7 +145,7 @@ def render(self, context):
                         # Render posts checkbox
                         if props.render_posts:
                             #post distance from tree variable
-                            create_post(num_posts, orientation= orientation, loc = (x,y,1), label = label, render_with_material = props.render_post_material)
+                            create_post(num_posts, orientation= orientation, loc = (x,y,1), label = label)
                             num_posts += 1
                         
                         if label:

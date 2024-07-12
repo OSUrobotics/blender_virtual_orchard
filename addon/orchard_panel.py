@@ -103,31 +103,3 @@ class My_PT_Render_OBJ_Panel(Panel):
         
         if props.polygon_clipping:
             col.prop(props, "render_polygons")
-
-class My_PT_Render_Material_Panel(Panel):
-    bl_label = "Render Materials"
-    bl_idname = "PT_Panel_Render_Material"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Orchard"
-    bl_parent_id = "MY_PT_orchard_panel"
-    bl_options = {"DEFAULT_CLOSED"}
-    
-    def draw(self, context):
-        layout = self.layout
-        layout.scale_y = 1.4
-        
-        scene = context.scene
-        props = scene.my_tool
-
-        prop_names = [
-            "render_tree_material",
-            "render_wire_material",
-            "render_post_material",
-            "render_ground_material"
-            ]
-
-        col = layout.split().column(align=True)
-        col.scale_y = 0.7
-        for prop_name in prop_names:
-            col.prop(props, prop_name)
