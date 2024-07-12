@@ -33,8 +33,7 @@ def is_point_in_polygon(point, polygon):
 
 def change_yaw(self, context):
     props = context.scene.my_tool
-
-    if len(bpy.data.objects) == 0:
+    if not props.orchard_generated:
         return
 
     for obj in bpy.data.objects:  
@@ -46,6 +45,9 @@ def change_yaw(self, context):
 
 def displacement_modifier_strength_update(self, context):
     props = context.scene.my_tool
+    if not props.orchard_generated:
+        return
+    
     plane_obj = bpy.data.objects["ground"]
     plane_obj.modifiers["Displace"].strength = props.plane_unevenness
 
@@ -69,3 +71,7 @@ def add_displacement_modifier(obj, strength):
     
     # Set the strength of the displacement
     displace_modifier.strength = strength
+
+def load_scene():
+    bpy.context.view_layer.update()
+    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)

@@ -46,7 +46,7 @@ class MY_PT_RenderImagesPanel(Panel):
         row = layout.row()
         row.prop(props, "cam_offset")
 
-        layout.label(text="Toggle off take image before manipulating the following:")
+        layout.label(text="Toggle off Take image before manipulating the following:")
         layout.label(text="Cam location:")
 
         row = layout.row(align=True)

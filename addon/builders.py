@@ -4,6 +4,7 @@ import numpy as np
 import mathutils
 import math
 from typing import List
+from . helpers import load_scene
 
 def add_cylinder(
         size: float = 1.0,
@@ -36,33 +37,13 @@ def create_post(num_posts, orientation, loc = [0,0,0], label = True, render_with
         else:
             create_new_material_with_rgb_colors("post_mat",obj, (133/255 ,87/255, 35/255, 0.5), "diffuse" )
     
-    bpy.context.view_layer.update()
-    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+    load_scene()
             
-        
-    
-# def create_wire(wire_count, loc, orientation, label = False, render_with_material: bool = True):
-#     wire_dia_m = 0.004
-#     wire_scale = (wire_dia_m/2,wire_dia_m/2,10)
-#     # wire_rotation = [0,np.pi/2,0]
-#     wire_rotation = orientation
-#     add_cylinder(scale=wire_scale, location = loc, rotation = wire_rotation)
-#     bpy.context.active_object.name = 'wire'
-#     name = 'wire{}'.format(wire_count)
-#     bpy.context.active_object.name = name
-#     obj = bpy.data.objects[name]
-
-#     if render_with_material:
-#         if label:
-#             create_new_material_with_rgb_colors("wire_mat",obj, (1,0,1, 1), "emission" )
-#         else:
-#             create_new_material_with_rgb_colors("wire_mat",obj, (192/255 ,192/255, 192/255, 0.5), "diffuse" )
-
-def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, loc, label = False, render_with_material: bool = True):
+def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, loc, label = False):
     for i in range(num_wires):
-        create_wire(i, [loc[0],loc[1],wire_ground_offset + i*wire_spacing], label, render_with_material)
+        create_wire(i, [loc[0],loc[1],wire_ground_offset + i*wire_spacing], label)
         
-def create_wire(wire_count, loc, label = False, render_with_material: bool = True):
+def create_wire(wire_count, loc, label = False):
     wire_dia_m = 0.004
     wire_scale = (wire_dia_m / 2, wire_dia_m / 2, 10)
     wire_rotation = [0, np.pi/2, 0]
@@ -72,14 +53,12 @@ def create_wire(wire_count, loc, label = False, render_with_material: bool = Tru
     bpy.context.active_object.name = name
     obj = bpy.data.objects[name] 
 
-    if render_with_material:
-        if label:
-            create_new_material_with_rgb_colors("wire_mat", obj, (1, 0, 1, 1), "emission")
-        else:
-            create_new_material_with_rgb_colors("wire_mat", obj, (192 / 255, 192 / 255, 192 / 255, 0.5), "diffuse")
+    if label:
+        create_new_material_with_rgb_colors("wire_mat", obj, (1, 0, 1, 1), "emission")
+    else:
+        create_new_material_with_rgb_colors("wire_mat", obj, (192 / 255, 192 / 255, 192 / 255, 0.5), "diffuse")
 
-    bpy.context.view_layer.update()
-    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+    load_scene()
  
 
 # def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, orientation, label=False, render_with_material=True):
@@ -129,7 +108,6 @@ def new_plane(mylocation, mysize, myname):
     plane = bpy.data.objects[current_name]
     plane.name = myname
     plane.data.name = myname + "_mesh"
-    return
 
 def create_new_material_with_vertex_colors(name, obj, type):
     materials = bpy.data.materials
@@ -425,8 +403,7 @@ def load_trees_from_folder(folder_path, num):
     for _ in range(5):
         for files in glob.glob("{}/*.x3d".format(folder_path)):
             bpy.ops.import_scene.x3d(filepath=files)
-            bpy.context.view_layer.update()
-            bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+            load_scene()
             bpy.context.selected_objects[0].name = 'tree' + str(num_trees)
             num_trees+=1
             if num_trees == num:

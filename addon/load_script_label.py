@@ -148,18 +148,17 @@ def render(self, context):
                             create_post(num_posts, orientation= orientation, loc = (x,y,1), label = label, render_with_material = props.render_post_material)
                             num_posts += 1
                         
-                        if props.render_tree_material:
-                            if label:
-                                if y != coordinate_grid[1,-1] or orientation[0] == tree_or[0]:
-                                    create_new_material_with_rgb_colors(num_trees, obj, (0, 0, 0, 0), mat_type)
-                                else:
-                                    create_new_material_with_vertex_colors(num_trees, obj, mat_type)
+                        if label:
+                            if y != coordinate_grid[1,-1] or orientation[0] == tree_or[0]:
+                                create_new_material_with_rgb_colors(num_trees, obj, (0, 0, 0, 0), mat_type)
                             else:
-                                if props.random_textures:
-                                    texture_name, path = random.choice(list(tree_texture_paths.items()))
-                                    create_new_material_with_texture_bark('texture', obj, path, texture_name)
-                                else:
-                                    create_new_material_with_texture_bark('texture', obj, realistic_tree_texture_path, realistic_tree_texture)
+                                create_new_material_with_vertex_colors(num_trees, obj, mat_type)
+                        else:
+                            if props.random_textures:
+                                texture_name, path = random.choice(list(tree_texture_paths.items()))
+                                create_new_material_with_texture_bark('texture', obj, path, texture_name)
+                            else:
+                                create_new_material_with_texture_bark('texture', obj, realistic_tree_texture_path, realistic_tree_texture)
 
                         num+=1
                         num_trees+=1
@@ -172,20 +171,19 @@ def render(self, context):
                         subdivide_plane(plane, 10)
                         subdivide_plane(plane, 10)
                         add_displacement_modifier(plane, props.plane_unevenness)
+                    
+                    mat_name = 'ground_color'
+                    if label:
+                        create_new_material_with_rgb_colors(mat_name, plane, (0.6,0.2,0.,1), mat_type)
+                    else:
+                        if props.random_textures:
+                            texture_name, path = random.choice(list(ground_texture_paths.items()))
+                            tex_path = os.path.join(path, texture_name)
+                            create_new_material_with_texture(mat_name, plane, tex_path)
+                        else: 
+                            create_new_material_with_texture(mat_name, plane, realistic_ground_texture_path)
 
-                    if props.render_ground_material:
-                        mat_name = 'ground_color'
-                        if label:
-                            create_new_material_with_rgb_colors(mat_name, plane, (0.6,0.2,0.,1), mat_type)
-                        else:
-                            if props.random_textures:
-                                texture_name, path = random.choice(list(ground_texture_paths.items()))
-                                tex_path = os.path.join(path, texture_name)
-                                create_new_material_with_texture(mat_name, plane, tex_path)
-                            else: 
-                                create_new_material_with_texture(mat_name, plane, realistic_ground_texture_path)
-
-                            # create_new_material_with_texture(mat_name, plane, texture_path+'\\dirt_floor\\', 'dirt_floor')
+                        # create_new_material_with_texture(mat_name, plane, texture_path+'\\dirt_floor\\', 'dirt_floor')
 
                     if props.polygon_clipping:
 
@@ -193,7 +191,8 @@ def render(self, context):
                             create_polygon(bounding_box)
                             create_polygon(pgon_coords)
 
-                        bpy.context.view_layer.update()
+                        # This line is crucial here
+                        load_scene()
                         for obj in list(bpy.data.objects):
                             # Don't rotate the polygons if visualizing  
                             if "Polygon" not in obj.name:
