@@ -1,7 +1,7 @@
 from bpy.types import PropertyGroup
 import bpy.props
 from . generate_images import take_images
-from . helpers import change_yaw 
+from . helpers import change_yaw, displacement_modifier_strength_update 
 import numpy as np
 
 # This is done in VSCode to suppess warning caused by Blender Python API
@@ -38,6 +38,7 @@ class MyProperties(PropertyGroup):
         description="Controls the bumpyness of the plane",
         default=2.5,
         min=0,
+        update=displacement_modifier_strength_update
     )
 
     polygon_clipping: bpy.props.BoolProperty(

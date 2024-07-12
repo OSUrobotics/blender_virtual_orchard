@@ -37,23 +37,27 @@ def change_yaw(self, context):
     if len(bpy.data.objects) == 0:
         return
 
-    for obj in bpy.data.objects:
-        # remove this if line when done  
+    for obj in bpy.data.objects:  
         if "Polygon" not in obj.name:
             # Calculate the rotation matrix around the global Z axis
             rotation_matrix = mathutils.Matrix.Rotation(props.orchard_yaw, 4, 'Z') 
             # Apply the rotation matrix to the object's world matrix
             obj.matrix_world = rotation_matrix @ obj.matrix_world
 
-# Subdivide the plane
+def displacement_modifier_strength_update(self, context):
+    props = context.scene.my_tool
+    plane_obj = bpy.data.objects["ground"]
+    plane_obj.modifiers["Displace"].strength = props.plane_unevenness
+
+
 def subdivide_plane(obj, cuts):
     bpy.context.view_layer.objects.active = obj
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.subdivide(number_cuts=cuts)
     bpy.ops.object.mode_set(mode='OBJECT')
 
-# Add displacement modifier with a cloud texture
 def add_displacement_modifier(obj, strength):
+    """Add displacement modifier with a cloud texture"""
     # Add displacement modifier
     displace_modifier = obj.modifiers.new(name="Displace", type='DISPLACE')
     
