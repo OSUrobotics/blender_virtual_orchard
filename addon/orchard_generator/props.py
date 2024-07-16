@@ -26,6 +26,19 @@ class MyProperties(PropertyGroup):
         default="path to textures dir...",
         maxlen=1024,
         subtype="DIR_PATH")
+    
+    json_files_path: bpy.props.StringProperty(
+        name="Json files",
+        description="Select folder for json files",
+        default="path to json files dir...",
+        maxlen=1024,
+        subtype="DIR_PATH")
+    
+    load_props_from_json: bpy.props.BoolProperty(
+        name="Load props from json",
+        description= "Toggle on to load all gui parameters from the json file.\nWARNING: OVERRIDES THE GUI PANEL PROPERTIES",
+        default=False
+    )
 
     random_textures: bpy.props.BoolProperty(
         name="Random textures",
@@ -93,17 +106,10 @@ class MyProperties(PropertyGroup):
         min=0,
         max=5
     )
-    
-    subdivision_level: bpy.props.IntProperty(
-        name="Subdiv. Level",
-        default=0,
-        min=0,
-        max=6
-    )
 
     render_cam: bpy.props.BoolProperty(
         name="Render campath",
-        default=True
+        default=False
     )
     
     render_wires: bpy.props.BoolProperty(
@@ -229,7 +235,7 @@ Useful for adjusting desired camera parameters""",
     
     left_min: bpy.props.FloatProperty(
         name="Left-min",
-        description="Minimum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
+        description="Minimum distance the camera could be placed from the tree's origin in this direction. Goes form -1 to 1",
         default=0,
         min=-1,
         max=1,
@@ -239,7 +245,7 @@ Useful for adjusting desired camera parameters""",
     
     right_max: bpy.props.FloatProperty(
         name="Right-max",
-        description="Maximum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
+        description="Maximum distance the camera could be placed from the tree's origin in this direction. Goes form -1 to 1",
         default=0,
         min=-1,
         max=1,
@@ -249,7 +255,7 @@ Useful for adjusting desired camera parameters""",
     
     in_min: bpy.props.FloatProperty(
         name="In-min",
-        description="Minimum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
+        description="Minimum distance the camera could be placed from the tree's origin in this direction. Goes form -1 to 1",
         default=1,
         min=-1,
         max=1,
@@ -259,7 +265,7 @@ Useful for adjusting desired camera parameters""",
     
     out_max: bpy.props.FloatProperty(
         name="Out-max",
-        description="Maximum distance the camera is placed from the tree's origin in this direction. Goes form -1 to 1",
+        description="Maximum distance the camera could be placed from the tree's origin in this direction. Goes form -1 to 1",
         default=1,
         min=-1,
         max=1,
@@ -269,7 +275,7 @@ Useful for adjusting desired camera parameters""",
 
     down_min: bpy.props.FloatProperty(
         name="Down-min",
-        description="Minimum distance the camera is placed from the tree's origin in this direction. Goes form 0 to 1",
+        description="Minimum distance the camera could be placed from the tree's origin in this direction. Goes form 0 to 1",
         default=0.5,
         min=0,
         max=1,
@@ -279,7 +285,7 @@ Useful for adjusting desired camera parameters""",
 
     up_max: bpy.props.FloatProperty(
         name="Up-max",
-        description="Maximum distance the camera is placed from the tree's origin in this direction. Goes form 0 to 1",
+        description="Maximum distance the camera could be placed from the tree's origin in this direction. Goes form 0 to 1",
         default=0.5,
         min=0,
         max=1,
@@ -298,7 +304,7 @@ Useful for adjusting desired camera parameters""",
 
     min_x: bpy.props.FloatProperty(
         name="X-min",
-        description="Minimum angle the camera might face in this axis",
+        description="Minimum angle the camera could face in this axis",
         default=-np.pi/2,
         min=-2*np.pi,
         max=2*np.pi,
@@ -307,7 +313,7 @@ Useful for adjusting desired camera parameters""",
     
     max_x: bpy.props.FloatProperty(
         name="X-max",
-        description="Maximum angle the camera might face in this axis",
+        description="Maximum angle the camera could face in this axis",
         default=-np.pi/2,
         min=-2*np.pi,
         max=2*np.pi,
@@ -316,7 +322,7 @@ Useful for adjusting desired camera parameters""",
 
     min_y: bpy.props.FloatProperty(
         name="Y-min",
-        description="Minimum angle the camera might face in this axis",
+        description="Minimum angle the camera could face in this axis",
         default=-np.pi,
         min=-2*np.pi,
         max=2*np.pi,
@@ -325,7 +331,7 @@ Useful for adjusting desired camera parameters""",
     
     max_y: bpy.props.FloatProperty(
         name="Y-max",
-        description="Maximum angle the camera might face in this axis",
+        description="Maximum angle the camera could face in this axis",
         default=-np.pi,
         min=-2*np.pi,
         max=2*np.pi,
@@ -334,7 +340,7 @@ Useful for adjusting desired camera parameters""",
 
     min_z: bpy.props.FloatProperty(
         name="Z-min",
-        description="Minimum angle the camera might face in this axis",
+        description="Minimum angle the camera could face in this axis",
         default=0,
         min=-2*np.pi,
         max=2*np.pi,
@@ -343,7 +349,7 @@ Useful for adjusting desired camera parameters""",
     
     max_z: bpy.props.FloatProperty(
         name="Z-max",
-        description="Maximum angle the camera might face in this axis",
+        description="Maximum angle the camera could face in this axis",
         default=0,
         min=-2*np.pi,
         max=2*np.pi,

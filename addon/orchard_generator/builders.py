@@ -24,7 +24,6 @@ def add_cylinder(
 def create_post(num_posts, orientation, loc = [0,0,0], label = True):
     post_dia_m = 0.07
     post_scale = (post_dia_m/2,post_dia_m/2,5/2)
-    # post_rotation = [0,0,0]
     post_rotation = orientation
     add_cylinder(scale=post_scale, location = loc, rotation = post_rotation)
     name = 'post{}'.format(num_posts)
@@ -37,12 +36,8 @@ def create_post(num_posts, orientation, loc = [0,0,0], label = True):
         create_new_material_with_rgb_colors("post_mat",obj, (133/255 ,87/255, 35/255, 0.5), "diffuse" )
     
     load_scene()
-            
-def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, loc, label = False):
-    for i in range(num_wires):
-        create_wire(i, [loc[0],loc[1],wire_ground_offset + i*wire_spacing], label)
-        
-def create_wire(wire_count, loc, label = False):
+
+def create_wire(wire_count, loc, label=False):
     wire_dia_m = 0.004
     wire_scale = (wire_dia_m / 2, wire_dia_m / 2, 10)
     wire_rotation = [0, np.pi/2, 0]
@@ -59,15 +54,29 @@ def create_wire(wire_count, loc, label = False):
 
     load_scene()
  
+def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, tree_orientation, label=False):
+    # Center wires on the row
+    center_x = np.mean(row_loc[0])
+    center_y = np.mean(row_loc[1])
 
-# def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, orientation, label=False):
-#     # Center wires on the row
-#     center_x = np.mean(row_loc[0])
-#     center_y = np.mean(row_loc[1])
+    for i in range(num_wires):
+        # Create the base wire location
+        loc = [center_x, center_y, wire_ground_offset + i * wire_spacing]
+        
+        # Apply the transformation to align with the tree orientation
+        transformed_loc = apply_transform(loc, center_x, center_y, tree_orientation)
+        
+        # Create the wire at the transformed location
+        create_wire(i, transformed_loc, label)
+
+
+def apply_transform(loc, center_x, center_y, tree_orientation):
+    # Create a transformation matrix for rotation and translation
+    transform_matrix = mathutils.Matrix.Translation((center_x, center_y, 0)) @ mathutils.Matrix.Rotation(tree_orientation[0], 4, 'X')
     
-#     for i in range(num_wires):
-#         loc = [center_x, center_y, wire_ground_offset + i * wire_spacing]
-#         create_wire(i, loc, orientation, label)
+    # Apply the transformation to the location
+    transformed_loc = transform_matrix @ mathutils.Vector((loc[0] - center_x, loc[1] - center_y, loc[2]))
+    return transformed_loc
 
 def create_sine(numCycles = 1, stepsPerCycle = 16, curvelen=2, zscale=1.5, offset = (0,0,0), noise_var = (0,0,0)):
 
@@ -307,6 +316,7 @@ def create_new_material_with_texture(name, obj, texture_path):
         obj.data.materials.append(material)
     
 def make_camera_follow_curve(cam_obj, curve):   
+    cam_obj.rotation_euler = mathutils.Euler((np.pi/2,0,-np.pi/2), 'XYZ')
     cam_obj.select_set(True)
     bpy.context.view_layer.objects.active = curve
     bpy.ops.object.parent_set(type='FOLLOW')
@@ -440,10 +450,10 @@ def bounding_box_coords(coordinates):
     max_y = max(point[1] for point in coordinates) + 0.1
     
     bounding_box = [
-        (min_x, max_y, 0),
-        (max_x, max_y, 0),
-        (max_x, min_y, 0),
-        (min_x, min_y, 0)
+        (min_x, max_y),
+        (max_x, max_y),
+        (max_x, min_y),
+        (min_x, min_y)
     ]
 
     return bounding_box, (min_x, max_x, min_y, max_y)

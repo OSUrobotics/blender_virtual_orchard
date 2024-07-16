@@ -1,6 +1,7 @@
 import bpy
 import random
 import math
+from . helpers import load_scene
 
 def take_images(self, context):
     props = context.scene.my_tool
@@ -22,7 +23,7 @@ def take_images(self, context):
     for obj in obj_list:
         if "tree" in obj.name:
             tree_list.append(obj)
-        # remove once campath is obsolete
+        # remove this line if campath becomes obsolete
         elif "campath" in obj.name:
             bpy.data.objects.remove(bpy.data.objects["campath"], do_unlink=True)
 
@@ -41,7 +42,7 @@ def take_images(self, context):
         tree_height = tree_dimensions.z
         tree_spacing = 2 * math.tan(props.tree_angle[0]) * tree_height
         
-        # Define uniform sampling for offset
+        # Uniform sampling for offset
         offset_x = random.uniform(props.left_min, props.right_max) * tree_length
         offset_y = random.uniform(props.in_min, props.out_max) * tree_spacing
         offset_z = random.uniform(props.down_min, props.up_max) * tree_height
@@ -79,7 +80,8 @@ def take_images(self, context):
             cam_obj.rotation_euler[2] = tree_rotation_z
             if offset_y < 0: 
                 cam_obj.rotation_euler[2] = tree_rotation_z + math.pi
-            
+        
+        load_scene()
         if props.snap_image:
             # taking pairs of images
             if props.image_pairs:

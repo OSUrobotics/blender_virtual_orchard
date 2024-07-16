@@ -1,5 +1,6 @@
 import bpy
 import mathutils
+import json
 
 def create_polygon(points):
     # Create a new mesh
@@ -58,8 +59,8 @@ def subdivide_plane(obj, cuts):
     bpy.ops.mesh.subdivide(number_cuts=cuts)
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def add_displacement_modifier(obj, strength):
-    """Add displacement modifier with a cloud texture"""
+def add_displacement_modifier_with_cloud_texture(obj, strength):
+    """Adds a displacement modifier to the object with a cloud texture to replicate unevenness"""
     # Add displacement modifier
     displace_modifier = obj.modifiers.new(name="Displace", type='DISPLACE')
     
@@ -71,6 +72,40 @@ def add_displacement_modifier(obj, strength):
     
     # Set the strength of the displacement
     displace_modifier.strength = strength
+
+def serialize_value(value):
+    if isinstance(value, mathutils.Vector):
+        return list(value)
+    # Add other types as needed later on
+    return value
+
+def deserialize_value(value, type_hint):
+    if type_hint == mathutils.Vector:
+        return mathutils.Vector(value)
+    # Add other types as needed later on
+    return value
+
+def dump_properties_to_json(prop_group, file_path):
+    # Create a dictionary to hold the properties and their values
+    properties_dict = {}
+    
+    # Iterate through all properties of the PropertyGroup
+    for prop_name in prop_group.__annotations__:
+        value = getattr(prop_group, prop_name)
+        properties_dict[prop_name] = serialize_value(value)
+    
+    # Write the dictionary to a JSON file
+    with open(file_path, 'w') as json_file:
+        json.dump(properties_dict, json_file, indent=4)
+
+def load_properties_from_json(prop_group, file_path):
+    with open(file_path, 'r') as json_file:
+        properties_dict = json.load(json_file)
+    
+    for prop_name, value in properties_dict.items():
+        if hasattr(prop_group, prop_name):
+            type_hint = type(getattr(prop_group, prop_name))
+            setattr(prop_group, prop_name, deserialize_value(value, type_hint))
 
 def load_scene():
     bpy.context.view_layer.update()
