@@ -1,5 +1,4 @@
 from bpy.types import Panel
-import random
 
 class MY_PT_OrchardPanel(Panel):
     bl_label = "Orchard Panel"
@@ -21,15 +20,17 @@ class MY_PT_OrchardPanel(Panel):
 
         prop_names = [
             "tree_file_path", 
-            "texture_path",
-            "json_files_path"
+            "texture_path"
         ]
 
         row = layout.row()
         row.prop(props, "load_props_from_json")
 
+        row = layout.row(align=True)
+        row.prop(props, "json_files_path")
+
         if props.load_props_from_json:
-            layout.label(text=f"CURRENTLY OVERRIDING PANEL...")
+            layout.label(text=f"CURRENTLY OVERRIDING PANELS...")
 
         for prop_name in prop_names:
             layout.prop(props, prop_name)

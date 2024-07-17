@@ -157,7 +157,7 @@ def render(self, context):
                             else:
                                 create_new_material_with_texture_bark('texture', tree, realistic_tree_texture_path, realistic_tree_texture)
 
-                        orientation_noise = np.random.normal(0, 0.025, (nx, 1))
+                        orientation_noise = np.random.normal(0, 0.02, (nx, 1))
 
                         # Render posts checkbox
                         if props.render_posts:

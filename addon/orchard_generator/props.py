@@ -36,7 +36,7 @@ class MyProperties(PropertyGroup):
     
     load_props_from_json: bpy.props.BoolProperty(
         name="Load props from json",
-        description= "Toggle on to load all gui parameters from the json file.\nWARNING: OVERRIDES THE GUI PANEL PROPERTIES",
+        description= "Toggle on to load all gui parameters from the json file.\nWARNING: OVERRIDES ALL GUI PANEL PROPERTIES OTHER THAN JSON FILES PATH ",
         default=False
     )
 
