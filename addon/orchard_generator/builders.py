@@ -418,16 +418,18 @@ def load_trees_from_folder(folder_path, num):
             if num_trees == num:
                 return
 
-def fibonacci_hemisphere(samples):
+def fibonacci_hemisphere(n):
+    """Returns n euler coordinates representing orientation of the sun"""
+    # UNSURE IF THIS FUNCTION WORKS AS INTENDED
 
     points = []
     phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
 
-    if samples == 1:
+    if n == 1:
         points.append((0,0,0))
     else:
-        for i in range(samples):
-            y = 1 - (i / float(samples - 1))  # y goes from 1 to 0
+        for i in range(n):
+            y = 1 - (i / float(n - 1))  # y goes from 1 to 0
             radius = math.sqrt(1 - y * y)  # radius at y
 
             theta = phi * i  # golden angle increment
@@ -439,7 +441,6 @@ def fibonacci_hemisphere(samples):
             yaw = math.atan2(y, x)  
             roll = 0  
             points.append((pitch, yaw, roll))
-            # print(pitch, yaw)
 
     return points
 
