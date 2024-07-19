@@ -15,6 +15,11 @@
 
 5. To use the addon, press `N` to bring up the sidebar in the View3D menu, and it should be there.
 
+### Alternative (Highly recommended for development)
+
+ 1. Download the Blender Development Visual Studio Code Extension by Jacques Lucke.
+ 2. Have all the addon files in a workspace and simply follow the extension guide and you are good to go.
+
 ## Usage
 
 ### Setting Up the Render
