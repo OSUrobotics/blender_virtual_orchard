@@ -409,7 +409,7 @@ def load_trees_from_folder(folder_path, num):
     num_trees = 0
 
     # Hack for now, change it later
-    for _ in range(5):
+    for _ in range(10):
         for files in glob.glob("{}/*.x3d".format(folder_path)):
             bpy.ops.import_scene.x3d(filepath=files)
             load_scene()
@@ -444,6 +444,7 @@ def fibonacci_hemisphere(samples):
     return points
 
 def bounding_box_coords(coordinates):
+    """Determines coordinates of the square/rectangle surrounding the polygon"""
     min_x = min(point[0] for point in coordinates) + 0.1 # to account for noise
     max_x = max(point[0] for point in coordinates) + 0.1
     min_y = min(point[1] for point in coordinates) + 0.1

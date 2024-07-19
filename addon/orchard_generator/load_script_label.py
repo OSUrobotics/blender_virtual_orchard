@@ -13,29 +13,30 @@ def render(self, context):
     # All the custom properties are accessed through this variable
     props = context.scene.my_tool
 
+    # Load properties from JSON if specified
     if props.load_props_from_json:
         properties_files_path = os.path.join(props.json_files_path, "gui_parameters.json")
         load_properties_from_json(props, properties_files_path)
 
     texture_path = props.texture_path
-    
     tree_file_path = props.tree_file_path
 
+    # Determine type of tree
     is_type_envy = "envy" in tree_file_path
     is_type_ufo = "ufo" in tree_file_path
 
-    # Angle of tree
+    # Tree orientation
     tree_or = (
         props.tree_angle[0],
         props.tree_angle[1],
         props.tree_angle[2],
     )
 
-    # sun_or = [(np.pi/3, 0, 0)] #, (-np.pi/3,0,0)] , (-0.523, 0 , -2.11), (-np.pi/2, 0, 4.38),]
+    # Calculate sun orientations using the Fibonacci hemisphere method
     sun_or = fibonacci_hemisphere(props.num_sun_positions)
-    
+
     noise_var = [0]
-    # camera_offsets = [(-3,2.8,1.5)] #, (-3,3.1,1.5)]
+    # Camera offsets
     camera_offsets = [(
         props.cam_offset[0],
         props.cam_offset[1],
@@ -43,9 +44,7 @@ def render(self, context):
     )]
 
     nx, ny = (props.tree_rows, props.tree_columns)
-
     wire_spacing = props.wire_spacing
-
     orchard_yaw = props.orchard_yaw
     plane_unevenness = props.plane_unevenness
 
@@ -53,6 +52,7 @@ def render(self, context):
     json_dir = props.json_files_path
     file_path = os.path.join(json_dir, parameters_file_name)
 
+    # Load additional parameters from a JSON file
     with open(file_path, "r") as f:
         json_data = json.load(f)
         
@@ -72,9 +72,10 @@ def render(self, context):
     for offset in camera_offsets:
         for sun_or_value in sun_or:
             for noise_var_value in noise_var: 
+                # Clean up Blender data before rendering
                 clean_blender_data()
                 
-                # create the first camera object
+                # Create and set up the camera
                 cam = bpy.data.cameras.new("Camera")
                 cam_obj = bpy.data.objects.new("Camera", cam)
                 bpy.context.scene.camera = cam_obj
@@ -85,14 +86,16 @@ def render(self, context):
                     # Create camera path
                     create_sine(numCycles = 7, stepsPerCycle = 8, zscale=0.7, curvelen=10, offset = offset, noise_var = (0,noise_var_value,0))
                     curve = bpy.context.scene.objects["campath"]
-                    # Create camera
+                    # Make camera follow the path
                     make_camera_follow_curve(cam_obj, curve)
                 
+                # Load trees from the specified folder
                 load_trees_from_folder(tree_file_path, nx*ny*2)
 
-                #Set np seed
+                # Set random seed for reproducibility
                 random.seed()
 
+                # Shuffle the list of objects in Blender
                 obj_list = list(bpy.data.objects)
                 random.shuffle(obj_list)
                 tree_list = []
@@ -102,6 +105,7 @@ def render(self, context):
                         if "tree" in tree.name:
                             tree_list.append(tree)
 
+                    # Determine bounding box and coordinates based on tree type
                     if props.polygon_clipping:
                         bounding_box, (min_x, max_x, min_y, max_y) = bounding_box_coords(pgon_coords)
                         if props.render_polygons:
@@ -156,7 +160,7 @@ def render(self, context):
                                 create_new_material_with_texture_bark('texture', tree, path, texture_name)
                             else:
                                 create_new_material_with_texture_bark('texture', tree, realistic_tree_texture_path, realistic_tree_texture)
-
+                        # Change according to your needs
                         orientation_noise = np.random.normal(0, 0.02, (nx, 1))
 
                         # Render posts checkbox
@@ -220,9 +224,10 @@ def render(self, context):
                     if props.render_plane:
                         new_plane((0,0,0), 500, 'ground')
                         plane = bpy.data.objects['ground']
-                        # bumpy terrain
+                        # Prerequisite to bumpy terrain
                         subdivide_plane(plane, 10)
                         subdivide_plane(plane, 10)
+                        # Bumpy terrain
                         add_displacement_modifier_with_cloud_texture(plane, plane_unevenness)
                     
                         mat_name = 'ground_color'
@@ -237,7 +242,6 @@ def render(self, context):
                                 create_new_material_with_texture(mat_name, plane, realistic_ground_texture_path)
 
                     if props.polygon_clipping:
-                        # This line is crucial here
                         load_scene()
                         for obj in list(bpy.data.objects):
                             # Don't rotate the polygons if visualizing  
@@ -249,7 +253,7 @@ def render(self, context):
 
                             if "tree" or "post" or "wire" in obj.name:
                                 obj_loc = obj.location
-                                # point is not inside polygon
+                                # Remove objects outside the polygon
                                 if not is_point_in_polygon((obj_loc[0], obj_loc[1]), pgon_coords):
                                     bpy.data.objects.remove(bpy.data.objects[obj.name], do_unlink=True)
                                     load_scene()
@@ -257,14 +261,14 @@ def render(self, context):
                     bpy.ops.object.select_all(action="DESELECT")
 
                     if props.snap_image:
-                        # remove this line if campath becomes obsolete
+                        # Remove constraints and take images (remove line if campath is obsolete)
                         cam_obj.constraints.clear()
                         take_images(self, context)
 
-                    # This line should run right after a complete render is done
-                    # Cleans up unused data blocks to avoid memory leak and duplicate names 
+                    # Clean up unused data blocks to avoid memory leaks and duplicate names 
                     bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
     
+    # Save properties to a JSON file with a timestamp
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     json_file_path = os.path.join(props.json_files_path, "dumps", f"props_dump_{timestamp}.json") 
     dump_properties_to_json(props, json_file_path)

@@ -23,7 +23,7 @@
     "render_plane": true,
     "render_polygons": false,
     "orchard_generated": false,
-    "snap_image": true,
+    "snap_image": false,
     "random_tree": true,
     "image_pairs": false,
     "image_dir_path": "C:\\Users\\Utsav Bhandari\\Documents\\blenderStuff\\virtual_orchard\\",

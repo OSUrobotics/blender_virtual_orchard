@@ -13,7 +13,8 @@ def create_polygon(points):
     # Create the mesh from the points
     mesh.from_pydata(points, [], [[i for i in range(len(points))]])
 
-def is_point_in_polygon(point, polygon):
+def is_point_in_polygon(point: tuple, polygon: list[tuple[float, float]]) -> bool:
+    """Determines if given 2D coordinate lies in the polygon or not"""
     x, y = point
     n = len(polygon)
     inside = False
@@ -33,6 +34,7 @@ def is_point_in_polygon(point, polygon):
     return inside
 
 def change_yaw(self, context):
+    """Applys rotation matrix for rotation along global Z-axis for all objects"""
     props = context.scene.my_tool
     if not props.orchard_generated:
         return
@@ -86,6 +88,8 @@ def deserialize_value(value, type_hint):
     return value
 
 def dump_properties_to_json(prop_group, file_path):
+    """Dumps all properties of the PropertyGroup into the json file"""
+
     # Create a dictionary to hold the properties and their values
     properties_dict = {}
     
@@ -99,6 +103,7 @@ def dump_properties_to_json(prop_group, file_path):
         json.dump(properties_dict, json_file, indent=4)
 
 def load_properties_from_json(prop_group, file_path):
+    """Sets all properties of the PropertyGroup to ones defined in the json file"""
     with open(file_path, 'r') as json_file:
         properties_dict = json.load(json_file)
     
@@ -108,5 +113,6 @@ def load_properties_from_json(prop_group, file_path):
             setattr(prop_group, prop_name, deserialize_value(value, type_hint))
 
 def load_scene():
+    """Updates scene and also throws a warning in the terminal"""
     bpy.context.view_layer.update()
     bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
