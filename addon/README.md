@@ -169,3 +169,7 @@ The addon can load additional parameters from a JSON file. The file should conta
 ### Example dump JSON File name
 
 `props_dump_2024-07-17_00-32-32.json`
+
+### Example image taken in Blender's 3-D Environment
+![image_0000](https://github.com/user-attachments/assets/bf88253b-6720-42a8-8718-a78da64270fb)
+
