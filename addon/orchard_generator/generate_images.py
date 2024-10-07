@@ -2,8 +2,10 @@ import bpy
 import random
 import math
 from . helpers import load_scene
-
+from .builders import create_sky_color, create_sky_texture, create_sun, fibonacci_hemisphere
+sun_or = fibonacci_hemisphere(100)
 def take_images(self, context):
+    global sun_or
     props = context.scene.my_tool
 
     focal_length = props.focal_length
@@ -26,13 +28,16 @@ def take_images(self, context):
         # remove this line if campath becomes obsolete
         elif "campath" in obj.name:
             bpy.data.objects.remove(bpy.data.objects["campath"], do_unlink=True)
-
+    tree_list.sort(key=lambda x: int(x.name[4:]))
     cam_obj = bpy.data.objects["Camera"]
     bpy.context.view_layer.objects.active = cam_obj
 
+
+
     for i in range(props.num_images):
         if props.random_tree:
-            selected_tree = random.choice(tree_list)
+            #Choose only from first half of the trees
+            selected_tree = random.choice(tree_list[:len(tree_list)//2])
         else:
             selected_tree = tree_list[0]
 
@@ -51,11 +56,11 @@ def take_images(self, context):
         tree_rotation_z = selected_tree.rotation_euler.z
 
         # Calculate the offset considering the tree's rotation
-        camera_x_offset = offset_x * math.cos(tree_rotation_z) - offset_y * math.sin(tree_rotation_z)
-        camera_y_offset = offset_x * math.sin(tree_rotation_z) + offset_y * math.cos(tree_rotation_z)
+        # camera_x_offset = offset_x * math.cos(tree_rotation_z) - offset_y * math.sin(tree_rotation_z)
+        # camera_y_offset = offset_x * math.sin(tree_rotation_z) + offset_y * math.cos(tree_rotation_z)
 
-        camera_x = tree_location.x + camera_x_offset
-        camera_y = tree_location.y + camera_y_offset
+        camera_x = tree_location.x + offset_x
+        camera_y = tree_location.y + offset_y
         camera_z = tree_location.z + offset_z
 
         cam_obj.location = (camera_x, camera_y, camera_z)
@@ -80,24 +85,116 @@ def take_images(self, context):
             cam_obj.rotation_euler[2] = tree_rotation_z
             if offset_y < 0: 
                 cam_obj.rotation_euler[2] = tree_rotation_z + math.pi
-        
+        mat_tex = []
+        mat_ground = []
+        #Get all materials with texture in name
+        for mat in bpy.data.materials:
+            if "texture_ground" in mat.name:
+                mat_ground.append(mat)
+            elif "texture" in mat.name:
+                mat_tex.append(mat)
+
+
         load_scene()
-        if props.snap_image:
-            # taking pairs of images
-            if props.image_pairs:
-                bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1.png"
-                bpy.ops.render.render(write_still=True)
-                
-                # Slight variation in camera's location for the second image
-                slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
-                cam_obj.location = (camera_x + slight_variation, camera_y + slight_variation, camera_z + slight_variation)
-                bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_2.png"
-                bpy.ops.render.render(write_still=True)
-                continue
+        material = None
+        material_name = "Unset"
+        selected_tree_idx = int(selected_tree.name[4:])
+        # Slight variation in camera's location for the second image
+        slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
+        for label in [True, False]:
+            print(f"Label: {label}")
+            if props.snap_image:
+                #If label is False, set active materia for all tree objects to the first one
+                for obj in bpy.data.objects:
+                    if "sun" in obj.name:
+                        bpy.data.objects.remove(obj, do_unlink=True)
+
+                    try: #TODO: Fix this
+                        bpy.context.view_layer.objects.active = obj
+                        bpy.ops.object.mode_set(mode='OBJECT')
+                        obj.data.materials.clear()
+                    except:
+                        continue
+
+                    if "tree" in obj.name:
+                        # Make the object active and ensure it's in Object mode
+
+                        if label:
+                            # Determine which material to assign based on the label
+                            material_name = "mat_labelled_tree" if obj.name == selected_tree.name else "mat_labelled_black"
+                            material = bpy.data.materials.get(material_name)
+                        else:
+                            material = random.choice(mat_tex)
+                            obj.data.materials.append(material)
+                    elif "ground" in obj.name:
+                        material_name = "mat_labelled_ground" if label else "mat_ground"
+                        if label:
+                            material = bpy.data.materials.get("mat_labelled_ground")
+                        else:
+                            material = random.choice(mat_ground)
+
+                    elif "post" in obj.name:
+                        post_idx = int(obj.name[4:])
+                        if label:
+                            if post_idx == selected_tree_idx*2 or post_idx == selected_tree_idx*2 + 1:
+                                material_name = "mat_labelled_post"
+                            else:
+                                material_name = "mat_labelled_black"
+                        else:
+                            material_name = "mat_post"
+                        material = bpy.data.materials.get(material_name)
+                    elif "wire" in obj.name:
+                        trellis_idx = int(obj.name[4:5])
+                        if label:
+                            if trellis_idx == selected_tree_idx // 4: #nx
+                                material_name = "mat_labelled_wire"
+                            else:
+                                material_name = "mat_labelled_black"
+                        else:
+                            material_name = "mat_wire"
+                        material = bpy.data.materials.get(material_name)
+                    else:
+                        continue
+
+                    # Ensure the material exists
+                    if material is None:
+                        raise ValueError(f"Material not found {material_name}")
+
+                    # Assign the material to the first material slot, or add it if no slots exist
+                    if obj.data.materials:
+                        obj.data.materials[0] = material
+                    else:
+                        obj.data.materials.append(material)
+
+
+                    # Print confirmation of the material assignment
+                    print(f"Assigned material '{obj.data.materials[0].name}' to '{obj.name}'")
+                    # Force a viewport update to ensure the material change is reflected
+                    load_scene()
+
+
+                if label:
+                    create_sky_color()
+                else:
+                    create_sky_texture()
+                    create_sun(random.choice(sun_or))
+
+                # taking pairs of images
+                if props.image_pairs:
+                    cam_obj.location = (camera_x, camera_y, camera_z)
+                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
+                    bpy.ops.render.render(write_still=True)
+
+                    
+                    cam_obj.location = (camera_x + slight_variation, camera_y + slight_variation, camera_z + slight_variation)
+                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_2_{str(label)}.png"
+                    bpy.ops.render.render(write_still=True)
+                    continue
 
             # Render the image and save it. Change the formatting to suit your needs
-            bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}.png"
-            bpy.ops.render.render(write_still=True)
+            if not props.image.pairs:
+                bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}_{str(label)}.png"
+                bpy.ops.render.render(write_still=True)
 
         
 

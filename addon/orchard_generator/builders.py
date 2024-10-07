@@ -4,7 +4,7 @@ import numpy as np
 import mathutils
 import math
 from typing import List
-from . helpers import load_scene
+from .helpers import load_scene
 
 def add_cylinder(
         size: float = 1.0,
@@ -37,13 +37,13 @@ def create_post(num_posts, orientation, loc = [0,0,0], label = True):
     
     load_scene()
 
-def create_wire(wire_count, loc, label=False):
+def create_wire(wire_count, loc, num_trellis, label = False):
     wire_dia_m = 0.004
     wire_scale = (wire_dia_m / 2, wire_dia_m / 2, 10)
     wire_rotation = [0, np.pi/2, 0]
     add_cylinder(scale=wire_scale, location=loc, rotation=wire_rotation)
     bpy.context.active_object.name = 'wire'
-    name = 'wire{}'.format(wire_count)
+    name = 'wire{}_{}'.format(num_trellis, wire_count)
     bpy.context.active_object.name = name
     obj = bpy.data.objects[name] 
 
@@ -54,7 +54,7 @@ def create_wire(wire_count, loc, label=False):
 
     load_scene()
  
-def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, tree_orientation, label=False):
+def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, tree_orientation, num_trellis, label=False):
     # Center wires on the row
     center_x = np.mean(row_loc[0])
     center_y = np.mean(row_loc[1])
@@ -67,7 +67,7 @@ def create_trellis_wires(wire_ground_offset, wire_spacing, num_wires, row_loc, t
         transformed_loc = apply_transform(loc, center_x, center_y, tree_orientation)
         
         # Create the wire at the transformed location
-        create_wire(i, transformed_loc, label)
+        create_wire(i, transformed_loc,  num_trellis, label)
 
 
 def apply_transform(loc, center_x, center_y, tree_orientation):
@@ -143,7 +143,9 @@ def create_new_material_with_vertex_colors(name, obj, type):
         diffuse.inputs['Strength'].default_value= 10
         links.new( input.outputs['Color'], diffuse.inputs['Color'])
         links.new( diffuse.outputs['Emission'], output.inputs['Surface'] )
-    
+
+    if obj is None:
+        return material
     if obj.data.materials:
         # assign to 1st material slot
         obj.data.materials[0] = material
@@ -176,7 +178,8 @@ def create_new_material_with_rgb_colors(name, obj, color, type):
         diffuse.inputs['Strength'].default_value= 10
         links.new( input.outputs['Color'], diffuse.inputs['Color'])
         links.new( diffuse.outputs['Emission'], output.inputs['Surface'] )
-    
+    if obj is None:
+        return material
     if obj.data.materials:
         # assign to 1st material slot
         obj.data.materials[0] = material
@@ -184,7 +187,7 @@ def create_new_material_with_rgb_colors(name, obj, color, type):
         # no slots
         obj.data.materials.append(material)
         
-def create_new_material_with_texture_bark(name, obj, texture_path, texture_name):
+def create_new_material_with_texture_bark(name, obj, texture_path):
     materials = bpy.data.materials
     mat_name = 'mat_{}'.format(name)
     
@@ -242,7 +245,9 @@ def create_new_material_with_texture_bark(name, obj, texture_path, texture_name)
    
     links.new( diffuse.outputs['BSDF'], output.inputs['Surface'] )
     links.new( displacement.outputs['Displacement'], output.inputs['Displacement'] ) 
-    
+
+    if obj is None:
+        return material
         
     if obj.data.materials:
         # assign to 1st material slot
@@ -307,6 +312,8 @@ def create_new_material_with_texture(name, obj, texture_path):
     links.new( diffuse.outputs['BSDF'], output.inputs['Surface'] )
     links.new( displacement.outputs['Displacement'], output.inputs['Displacement'] ) 
 
+    if obj is None:
+        return material
         
     if obj.data.materials:
         # assign to 1st material slot
@@ -407,23 +414,21 @@ def clean_blender_data():
     
 def load_trees_from_folder(folder_path, num):
     num_trees = 0
+    for files in glob.glob("{}/*.x3d".format(folder_path)):
+        bpy.ops.import_scene.x3d(filepath=files)
+        load_scene()
+        bpy.context.selected_objects[0].name = 'tree' + str(num_trees)
 
-    # Hack for now, change it later
-    for _ in range(10):
-        for files in glob.glob("{}/*.x3d".format(folder_path)):
-            bpy.ops.import_scene.x3d(filepath=files)
-            load_scene()
-            bpy.context.selected_objects[0].name = 'tree' + str(num_trees)
-            num_trees+=1
-            if num_trees == num:
-                return
+        num_trees+=1
+        if num_trees == num:
+            return
 
 def fibonacci_hemisphere(n):
     """Returns n euler coordinates representing orientation of the sun"""
-    # UNSURE IF THIS FUNCTION WORKS AS INTENDED
+    #TODO: UNSURE IF THIS FUNCTION WORKS AS INTENDED
 
     points = []
-    phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
+    phi = math.pi * (3 - np.sqrt(5))  # golden angle in radians
 
     if n == 1:
         points.append((0,0,0))

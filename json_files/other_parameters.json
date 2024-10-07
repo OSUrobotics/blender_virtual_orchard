@@ -1,0 +1,45 @@
+{
+  "envy_grid_square_coordinates": [
+      [-10, 10],
+      [5, 10],
+      [5, -10],
+      [-10, -10]
+    ],
+
+  "ufo_grid_square_coordinates": [
+      [-7.5, 1],
+      [2.5, 1],
+      [2.5, -10],
+      [-7.5, -10]
+    ],
+
+  "polygon_coordinates": [
+      [-5, 0],
+      [0, 0.5],
+      [2.5, 0.5],
+      [2, -7],
+      [0, -7]
+    ],
+
+  "random_tree_texture_file_names": [
+      "bark_palm_tree",
+      "bark_willow",
+      "bark_willow_02",
+      "palm_tree_bark",
+      "japanese_hackberry",
+      "bark_brown_02",
+      "sakura_bark"
+    ],
+
+  "realistic_tree_texture_file_name":
+      "bark_willow",
+
+  "random_ground_texture_file_names": [
+      "dirt_floor",
+      "rock_ground",
+      "brown_mud"
+    ],
+
+  "realistic_ground_texture_file_name":
+      "dirt_floor"
+}

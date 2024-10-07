@@ -162,4 +162,7 @@ cython_debug/
 .idea
 .DS_Store
 
-/
+images*
+*.zip
+textures/
+
