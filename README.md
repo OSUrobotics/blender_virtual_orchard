@@ -176,3 +176,5 @@ The addon can load additional parameters from a JSON file. The file should conta
 ![image_0000](https://github.com/user-attachments/assets/bf88253b-6720-42a8-8718-a78da64270fb)
 
 
+### Set sampling rendering to 1
+### link to download data -https://oregonstate.app.box.com/s/h64vg0sa5ttyqx5hocgpcak77mkzsj6b

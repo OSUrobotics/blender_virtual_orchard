@@ -165,4 +165,5 @@ cython_debug/
 images*
 *.zip
 textures/
-
+*.json
+tree_dataset/
