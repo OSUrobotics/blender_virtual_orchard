@@ -224,8 +224,6 @@ def take_images(self, context):
                     # Re-setup for second set of photos
                     setup_composite_nodes(props)
                     
-                    # Slight variation in camera's location for the second image
-                    slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
                     cam_obj.location = (camera_x + slight_variation, camera_y + slight_variation, camera_z + slight_variation)
                     
                     bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
