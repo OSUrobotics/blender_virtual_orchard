@@ -4,6 +4,40 @@ import math
 from . helpers import load_scene
 from .builders import create_sky_color, create_sky_texture, create_sun, fibonacci_hemisphere
 sun_or = fibonacci_hemisphere(100)
+
+def setup_composite_nodes(props):
+    bpy.context.scene.use_nodes = True
+    tree = bpy.context.scene.node_tree
+
+    tree.nodes.clear()
+    
+    render_layers = tree.nodes.new('CompositorNodeRLayers')
+
+    normalize = tree.nodes.new(type="CompositorNodeNormalize")
+
+    map_range = tree.nodes.new(type="CompositorNodeMapRange")
+    
+    map_range.inputs['From Min'].default_value = 0
+    map_range.inputs['From Max'].default_value = 1
+    map_range.inputs['To Min'].default_value = 1
+    map_range.inputs['To Max'].default_value = 0
+
+    file_output = tree.nodes.new(type="CompositorNodeOutputFile")
+    file_output.format.file_format = 'PNG'
+    file_output.base_path = props.image_dir_path
+    
+    # Remove default slot and create named slots
+    file_output.file_slots.clear()
+    file_output.file_slots.new('rgb')
+    file_output.file_slots.new('depth')
+    
+    tree.links.new(render_layers.outputs['Image'], file_output.inputs['rgb'])
+    tree.links.new(render_layers.outputs['Depth'], normalize.inputs[0])
+    tree.links.new(normalize.outputs[0], map_range.inputs[0])
+    tree.links.new(map_range.outputs[0], file_output.inputs['depth'])
+
+    return file_output
+
 def take_images(self, context):
     global sun_or
     props = context.scene.my_tool
@@ -181,19 +215,43 @@ def take_images(self, context):
 
                 # taking pairs of images
                 if props.image_pairs:
-                    cam_obj.location = (camera_x, camera_y, camera_z)
-                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
+                    file_output = setup_composite_nodes(props)
+
+                    rgb_filename_1 = f"tree_{i:04d}_pair_1"
+                    depth_filename_1 = f"tree_{i:04d}_pair_1_depth"
+                    rgb_filename_2 = f"tree_{i:04d}_pair_2"
+                    depth_filename_2 = f"tree_{i:04d}_pair_2_depth"
+                    
+                    # Update file output paths
+                    # file_output = bpy.context.scene.node_tree.nodes["File Output"]
+                    file_output.file_slots['rgb'].path = rgb_filename_1
+                    file_output.file_slots['depth'].path = depth_filename_1
+                    
                     bpy.ops.render.render(write_still=True)
 
+                    # Re-setup for second set of photos
+                    file_output = setup_composite_nodes(props)
                     
+                    # Slight variation in camera's location for the second image
+                    slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
                     cam_obj.location = (camera_x + slight_variation, camera_y + slight_variation, camera_z + slight_variation)
-                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_2_{str(label)}.png"
+                    
+                    file_output.file_slots['rgb'].path = rgb_filename_2
+                    file_output.file_slots['depth'].path = depth_filename_2
+                    
                     bpy.ops.render.render(write_still=True)
                     continue
 
             # Render the image and save it. Change the formatting to suit your needs
             if not props.image.pairs:
-                bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}_{str(label)}.png"
+                file_output = setup_composite_nodes(props, i)
+
+                rgb_filename = f"image_rgb_"
+                depth_filename = f"image_depth_"
+
+                file_output.file_slots['rgb'].path = rgb_filename
+                file_output.file_slots['depth'].path = depth_filename
+
                 bpy.ops.render.render(write_still=True)
 
         
