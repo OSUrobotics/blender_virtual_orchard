@@ -30,7 +30,7 @@ def setup_composite_nodes(props):
     file_output.file_slots.clear()
     file_output.file_slots.new('rgb')
     file_output.file_slots.new('depth')
-    
+
     tree.links.new(render_layers.outputs['Image'], file_output.inputs['rgb'])
     tree.links.new(render_layers.outputs['Depth'], normalize.inputs[0])
     tree.links.new(normalize.outputs[0], map_range.inputs[0])
@@ -218,10 +218,11 @@ def take_images(self, context):
                     cam_obj.location = (camera_x, camera_y, camera_z)
                     file_output = setup_composite_nodes(props)
 
-                    rgb_filename_1 = f"tree_{i:04d}_pair_1"
-                    depth_filename_1 = f"tree_{i:04d}_pair_1_depth"
-                    rgb_filename_2 = f"tree_{i:04d}_pair_2"
-                    depth_filename_2 = f"tree_{i:04d}_pair_2_depth"
+                    label_type = "labeled" if label else "unlabeled"
+                    base_filename = f"tree_{i:04d}_{label_type}"
+
+                    rgb_filename_1 = f"{base_filename}_pair1_rgb_"
+                    depth_filename_1 = f"{base_filename}_pair1_depth_"
                     
                     # Update file output paths
                     # file_output = bpy.context.scene.node_tree.nodes["File Output"]
@@ -232,6 +233,9 @@ def take_images(self, context):
 
                     # Re-setup for second set of photos
                     file_output = setup_composite_nodes(props)
+
+                    rgb_filename_2 = f"{base_filename}_pair2_rgb_"
+                    depth_filename_2 = f"{base_filename}_pair2_depth_"
                     
                     # Slight variation in camera's location for the second image
                     slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
@@ -245,10 +249,13 @@ def take_images(self, context):
 
             # Render the image and save it. Change the formatting to suit your needs
             if not props.image.pairs:
-                file_output = setup_composite_nodes(props, i)
+                file_output = setup_composite_nodes(props)
 
-                rgb_filename = f"image_rgb_"
-                depth_filename = f"image_depth_"
+                label_type = "labeled" if label else "unlabeled"
+                base_filename = f"tree_{i:04d}_{label_type}"
+
+                rgb_filename = f"{base_filename}_rgb_"
+                depth_filename = f"{base_filename}_depth_"
 
                 file_output.file_slots['rgb'].path = rgb_filename
                 file_output.file_slots['depth'].path = depth_filename
