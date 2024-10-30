@@ -215,6 +215,7 @@ def take_images(self, context):
 
                 # taking pairs of images
                 if props.image_pairs:
+                    cam_obj.location = (camera_x, camera_y, camera_z)
                     file_output = setup_composite_nodes(props)
 
                     rgb_filename_1 = f"tree_{i:04d}_pair_1"
