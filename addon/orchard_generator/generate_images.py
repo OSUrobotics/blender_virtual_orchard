@@ -216,34 +216,19 @@ def take_images(self, context):
                 # taking pairs of images
                 if props.image_pairs:
                     cam_obj.location = (camera_x, camera_y, camera_z)
-                    file_output = setup_composite_nodes(props)
+                    setup_composite_nodes(props)
 
-                    label_type = "labeled" if label else "unlabeled"
-                    base_filename = f"tree_{i:04d}_{label_type}"
-
-                    rgb_filename_1 = f"{base_filename}_pair1_rgb_"
-                    depth_filename_1 = f"{base_filename}_pair1_depth_"
-                    
-                    # Update file output paths
-                    # file_output = bpy.context.scene.node_tree.nodes["File Output"]
-                    file_output.file_slots['rgb'].path = rgb_filename_1
-                    file_output.file_slots['depth'].path = depth_filename_1
-                    
+                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
                     bpy.ops.render.render(write_still=True)
 
                     # Re-setup for second set of photos
-                    file_output = setup_composite_nodes(props)
-
-                    rgb_filename_2 = f"{base_filename}_pair2_rgb_"
-                    depth_filename_2 = f"{base_filename}_pair2_depth_"
+                    setup_composite_nodes(props)
                     
                     # Slight variation in camera's location for the second image
                     slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
                     cam_obj.location = (camera_x + slight_variation, camera_y + slight_variation, camera_z + slight_variation)
                     
-                    file_output.file_slots['rgb'].path = rgb_filename_2
-                    file_output.file_slots['depth'].path = depth_filename_2
-                    
+                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
                     bpy.ops.render.render(write_still=True)
                     continue
 
@@ -251,14 +236,7 @@ def take_images(self, context):
             if not props.image.pairs:
                 file_output = setup_composite_nodes(props)
 
-                label_type = "labeled" if label else "unlabeled"
-                base_filename = f"tree_{i:04d}_{label_type}"
-
-                rgb_filename = f"{base_filename}_rgb_"
-                depth_filename = f"{base_filename}_depth_"
-
-                file_output.file_slots['rgb'].path = rgb_filename
-                file_output.file_slots['depth'].path = depth_filename
+                bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}_{str(label)}.png"
 
                 bpy.ops.render.render(write_still=True)
 
