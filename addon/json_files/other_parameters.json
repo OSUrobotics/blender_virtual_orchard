@@ -32,7 +32,8 @@
       "bark_brown",
     
   "random_ground_texture_file_names": [
-      "dirt_floor"
+      "dirt_floor",
+      "rock_ground"
     ],
 
   "realistic_ground_texture_file_name":
