@@ -167,3 +167,4 @@ images*
 textures/
 *.json
 tree_dataset/
+test_images/

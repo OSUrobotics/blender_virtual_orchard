@@ -103,7 +103,7 @@ def render(self, context):
             tree_list.append(tree)
 
     #Sort trees by name
-    tree_list.sort(key=lambda x: int(x.name[4:]))
+    # tree_list.sort(key=lambda x: int(x.name[4:]))
 
     materials = []
     #Create materials for each texture
@@ -146,7 +146,8 @@ def render(self, context):
     coordinate_grid = np.array([xa, xb]).reshape(2,-1)
 
     num = 0
-    num_trees = 0
+    loc_num = 0
+    num_trees = 2*nx*ny
     num_posts = 0
     num_trellis = 0
     orientation = (-tree_or[0], 0, 0)
@@ -156,9 +157,15 @@ def render(self, context):
 
     row_x_coords = []
     row_y_coords = []
-    for idx, tree in enumerate(tree_list):
-        tree_dimensions = tree.dimensions
-        if num_trees == nx * ny:
+    tree_labels = ['SPUR', 'BRANCH', 'TRUNK']
+    for _ in range(num_trees):
+        tree_name_root = f"tree{loc_num}"
+        tree_spur = bpy.data.objects[tree_name_root + "_SPUR"]
+        tree_branch = bpy.data.objects[tree_name_root + "_BRANCH"]
+        tree_trunk = bpy.data.objects[tree_name_root + "_TRUNK"]
+        #TODO: This is wrong. The trunk is taller than the branch
+        tree_dimensions = tree_branch.dimensions
+        if num == nx * ny:
             num = 0
             orientation = tree_or
 
@@ -170,12 +177,20 @@ def render(self, context):
         row_x_coords.append(tree_x)
         row_y_coords.append(tree_y)
 
-        tree.location = mathutils.Vector((tree_x, tree_y, 0))
-        tree.rotation_euler = mathutils.Euler((orientation), 'XYZ')
+        tree_spur.location = mathutils.Vector((tree_x, tree_y, 0))
+        tree_spur.rotation_euler = mathutils.Euler((orientation), 'XYZ')
+        tree_branch.location = mathutils.Vector((tree_x, tree_y, 0))
+        tree_branch.rotation_euler = mathutils.Euler((orientation), 'XYZ')
+        tree_trunk.location = mathutils.Vector((tree_x, tree_y, 0))
+        tree_trunk.rotation_euler = mathutils.Euler((orientation), 'XYZ')
 
         for mat in materials:
-            tree.data.materials.append(mat)
-        tree.active_material_index = 1
+            tree_spur.data.materials.append(mat)
+            tree_branch.data.materials.append(mat)
+            tree_trunk.data.materials.append(mat)
+        tree_spur.active_material_index = 1
+        tree_branch.active_material_index = 1
+        tree_trunk.active_material_index = 1
         # Change according to your needs
         orientation_noise = np.random.normal(0, 0.02, (nx, 1))
 
@@ -218,14 +233,14 @@ def render(self, context):
 
         # Render wires checkbox
         if props.render_wires:
-            if (idx + 1) % nx == 0:
+            if (num + 1) % nx == 0:
                 create_trellis_wires(0.3 , wire_spacing, 7, (row_x_coords, row_y_coords), orientation, num_trellis, label = False)
                 num_trellis += 1
                 row_x_coords = []
                 row_y_coords = []
 
         num += 1
-        num_trees += 1
+        loc_num+=1
 
     # Render sky/sun checkbox
     if props.render_sky_and_sun:

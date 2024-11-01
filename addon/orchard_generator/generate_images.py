@@ -3,7 +3,7 @@ import random
 import math
 from . helpers import load_scene
 from .builders import create_sky_color, create_sky_texture, create_sun, fibonacci_hemisphere
-sun_or = fibonacci_hemisphere(100)
+sun_or = fibonacci_hemisphere(5)
 def take_images(self, context):
     global sun_or
     props = context.scene.my_tool
@@ -15,7 +15,7 @@ def take_images(self, context):
 
     bpy.context.scene.render.resolution_x = props.resolution_X
     bpy.context.scene.render.resolution_y = props.resolution_Y
-
+    nx, ny = (props.tree_rows, props.tree_columns)
     for cam in bpy.data.cameras:
         cam.lens = focal_length
 
@@ -28,7 +28,7 @@ def take_images(self, context):
         # remove this line if campath becomes obsolete
         elif "campath" in obj.name:
             bpy.data.objects.remove(bpy.data.objects["campath"], do_unlink=True)
-    tree_list.sort(key=lambda x: int(x.name[4:]))
+    # tree_list.sort(key=lambda x: int(x.name[4:]))
     cam_obj = bpy.data.objects["Camera"]
     bpy.context.view_layer.objects.active = cam_obj
 
@@ -36,13 +36,19 @@ def take_images(self, context):
 
     for i in range(props.num_images):
         if props.random_tree:
-            #Choose only from first half of the trees
-            selected_tree = random.choice(tree_list[:len(tree_list)//2])
-        else:
-            selected_tree = tree_list[0]
+            #TODO: This is a bug -- Choose only from first half of the trees
+            #Choose number between 0 and nx*ny
+            selected_tree = random.choice(list(range(nx*ny//2)))
 
-        # Get tree dimensions
-        tree_dimensions = selected_tree.dimensions
+        else:
+            selected_tree = 0
+
+        selected_tree_root = f"tree{selected_tree}"
+        tree_spur = bpy.data.objects[selected_tree_root + "_SPUR"]
+        tree_branch = bpy.data.objects[selected_tree_root + "_BRANCH"]
+        tree_trunk = bpy.data.objects[selected_tree_root + "_TRUNK"]        # Get tree dimensions
+
+        tree_dimensions = tree_branch.dimensions
         tree_length = tree_dimensions.x
         tree_height = tree_dimensions.z
         tree_spacing = 2 * math.tan(props.tree_angle[0]) * tree_height
@@ -52,8 +58,8 @@ def take_images(self, context):
         offset_y = random.uniform(props.in_min, props.out_max) * tree_spacing
         offset_z = random.uniform(props.down_min, props.up_max) * tree_height
 
-        tree_location = selected_tree.location
-        tree_rotation_z = selected_tree.rotation_euler.z
+        tree_location = tree_trunk.location
+        tree_rotation_z = tree_trunk.rotation_euler.z
 
         # Calculate the offset considering the tree's rotation
         # camera_x_offset = offset_x * math.cos(tree_rotation_z) - offset_y * math.sin(tree_rotation_z)
@@ -98,7 +104,7 @@ def take_images(self, context):
         load_scene()
         material = None
         material_name = "Unset"
-        selected_tree_idx = int(selected_tree.name[4:])
+        selected_tree_idx = selected_tree
         # Slight variation in camera's location for the second image
         slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
         for label in [True, False]:
@@ -121,11 +127,12 @@ def take_images(self, context):
 
                         if label:
                             # Determine which material to assign based on the label
-                            material_name = "mat_labelled_tree" if obj.name == selected_tree.name else "mat_labelled_black"
+                            material_name = "mat_labelled_tree" if selected_tree_root in obj.name else "mat_labelled_black"
+                            # print(obj.name, material_name)
                             material = bpy.data.materials.get(material_name)
                         else:
                             material = random.choice(mat_tex)
-                            obj.data.materials.append(material)
+                        obj.data.materials.append(material)
                     elif "ground" in obj.name:
                         material_name = "mat_labelled_ground" if label else "mat_ground"
                         if label:
@@ -192,7 +199,7 @@ def take_images(self, context):
                     continue
 
             # Render the image and save it. Change the formatting to suit your needs
-            if not props.image.pairs:
+            if not props.image_pairs:
                 bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}_{str(label)}.png"
                 bpy.ops.render.render(write_still=True)
 
