@@ -5,6 +5,7 @@ import mathutils
 import math
 from typing import List
 from .helpers import load_scene
+import os
 
 def add_cylinder(
         size: float = 1.0,
@@ -413,15 +414,18 @@ def clean_blender_data():
     
     
 def load_trees_from_folder(folder_path, num):
-    num_trees = 0
-    for files in glob.glob("{}/*.x3d".format(folder_path)):
-        bpy.ops.import_scene.x3d(filepath=files)
-        load_scene()
-        bpy.context.selected_objects[0].name = 'tree' + str(num_trees)
-
-        num_trees+=1
-        if num_trees == num:
-            return
+    num_trees = num
+    tree_labels = ['SPUR', 'BRANCH', 'TRUNK']
+    for num_tree in range(num_trees):
+        for label in tree_labels:
+            #load tree_{num_tree}_{label}
+            #Split by using os.sep asd
+            file_path = f"{folder_path}{os.sep}tree_{num_tree}_{label}.x3d"
+            # file_path = "{}/tree_{}_{}.x3d".format(folder_path, num_tree, label)
+            print(file_path)
+            bpy.ops.import_scene.x3d(filepath=file_path)
+            load_scene()
+            bpy.context.selected_objects[0].name = 'tree' + str(num_tree) + '_' + label
 
 def fibonacci_hemisphere(n):
     """Returns n euler coordinates representing orientation of the sun"""
