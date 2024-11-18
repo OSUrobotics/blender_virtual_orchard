@@ -2,10 +2,17 @@
 import numpy as np
 import cv2
 
-nemo = cv2.imread('C:\\Users\\abhin\\PycharmProjects\\blender_virtual_orchard\\blender_virtual_orchard\\images\\tree_0000_pair_1_True.png')
-nemo = cv2.cvtColor(nemo, cv2.COLOR_BGR2RGB)
+nemo = cv2.imread(f"C://Users//abhin//PycharmProjects//blender_virtual_orchard//blender_virtual_orchard//test_3//tree_0002__pair_1_labeled_rgb_0001.png")
+# nemo = cv2.cvtColor(nemo, cv2.COLOR_BGR2RGB)
 colors = np.unique(nemo.reshape(-1, nemo.shape[2]), axis=0)
-print(len(colors))
+print(len(colors), colors/255)
+
+#Display each color in the image
+for color in colors:
+    print(color)
+    mask = cv2.inRange(nemo, color, color)
+    cv2.imshow("Color", mask)
+    cv2.waitKey(0)
 # r, g, b = cv2.split(nemo)
 # fig = plt.figure()
 # axis = fig.add_subplot(1, 1, 1, projection="3d")

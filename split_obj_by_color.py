@@ -91,8 +91,8 @@ label = {
     (1.000000, 0.588235, 0.000000): "BRANCH",
     # (0.235294, 0.000000, 0.000000): "WATER_BRANCH",
 }
-input_folder = 'tree_dataset/dataset_envy'
-output_folder = 'tree_dataset/dataset_envy_split'
+input_folder = 'tree_dataset/dataset_ufo'
+output_folder = 'tree_dataset/dataset_ufo_split'
 #If output folder does not exist, create it
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
