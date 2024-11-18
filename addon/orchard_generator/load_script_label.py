@@ -121,11 +121,14 @@ def render(self, context):
 
     materials.append(create_new_material_with_vertex_colors("labelled_tree", None, "emission"))
     materials.append(create_new_material_with_rgb_colors("labelled_black", None, (0, 0, 0, 0), "emission"))
-    materials.append(create_new_material_with_rgb_colors("labelled_ground", None, (0.6, 0.5, 1,1), "emission"))
+    materials.append(create_new_material_with_rgb_colors("labelled_ground", None, (255/255, 192/255, 203/255,1), "emission"))
     materials.append(create_new_material_with_rgb_colors("labelled_post", None, (0, 0, 1, 1), "emission"))
     materials.append(create_new_material_with_rgb_colors("post", None, (133 / 255, 87 / 255, 35 / 255, 0.5), "diffuse"))
     materials.append(create_new_material_with_rgb_colors("wire", None, (192 / 255, 192 / 255, 192 / 255, 0.5), "diffuse"))
     materials.append(create_new_material_with_rgb_colors("labelled_wire", None, (1, 0, 1, 1), "emission"))
+    materials.append(create_new_material_with_rgb_colors("labelled_orange", None, (0, 0.5, 0.5, 1), "emission"))
+    materials.append(create_new_material_with_rgb_colors("labelled_cyan", None, (0, 1, 1, 1), "emission"))
+    
 
     label = False
     # Determine bounding box and coordinates based on tree type
@@ -254,7 +257,7 @@ def render(self, context):
 
     # Render ground checkbox
     if props.render_plane:
-        new_plane((0,0,0), 500, 'ground')
+        new_plane((0,0,0.1), 500, 'ground')
         plane = bpy.data.objects['ground']
         # Prerequisite to bumpy terrain
         subdivide_plane(plane, 10)

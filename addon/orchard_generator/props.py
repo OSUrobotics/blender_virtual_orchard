@@ -268,7 +268,7 @@ Useful for adjusting desired camera parameters""",
         description="Maximum distance the camera could be placed from the tree's origin in this direction. Goes form -1 to 1",
         default=1,
         min=-1,
-        max=1,
+        max=10,
         step=10,
         update=take_images
     )

@@ -176,7 +176,7 @@ def create_new_material_with_rgb_colors(name, obj, color, type):
         links.new( diffuse.outputs['BSDF'], output.inputs['Surface'] )
     elif type == "emission":
         diffuse = nodes.new( type = 'ShaderNodeEmission' )
-        diffuse.inputs['Strength'].default_value= 10
+        diffuse.inputs['Strength'].default_value=0.5
         links.new( input.outputs['Color'], diffuse.inputs['Color'])
         links.new( diffuse.outputs['Emission'], output.inputs['Surface'] )
     if obj is None:
@@ -217,6 +217,7 @@ def create_new_material_with_texture_bark(name, obj, texture_path):
     texture_b = nodes.new( type = 'ShaderNodeTexImage')
     texture_c = nodes.new( type = 'ShaderNodeTexImage')
     texture_d = nodes.new( type = 'ShaderNodeTexImage')
+    print(texture_path)
     diff_tex = glob.glob(texture_path+'/*diff*')[0]
     disp_tex = glob.glob(texture_path+'/*disp*')[0]
     gl_tex = glob.glob(texture_path+'/*gl*')[0]
@@ -381,13 +382,26 @@ def create_sky_texture():
 
     
 def create_sky_color():
+    # Ensure 'World' has nodes enabled
     bpy.data.worlds['World'].use_nodes = True
-    bg = bpy.data.worlds['World'].node_tree.nodes['Background']
+    world_nodes = bpy.data.worlds['World'].node_tree.nodes
+
+    # Access the Background node
+    bg = world_nodes.get('Background')
+    if not bg:
+        bg = world_nodes.new(type='ShaderNodeBackground')
+
+    # Remove any existing links to the Background Color input
     try:
         l = bg.inputs["Color"].links[0]
         bpy.data.worlds['World'].node_tree.links.remove(l)
-    except:
+    except IndexError:
         pass
+
+    # Set the color directly (example: soft blue)
+    bg.inputs["Color"].default_value = (0.5, 0.5, 0.5, 1.0)  # RGBA
+
+   
     
 def clean_blender_data():
     for block in bpy.data.meshes:

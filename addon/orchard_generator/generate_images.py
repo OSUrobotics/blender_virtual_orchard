@@ -4,41 +4,72 @@ import math
 from . helpers import load_scene
 from .builders import create_sky_color, create_sky_texture, create_sun, fibonacci_hemisphere
 
-sun_or = fibonacci_hemisphere(100)
+sun_or = fibonacci_hemisphere(30)
 
-def setup_composite_nodes(props):
+def setup_composite_nodes(props, label = False):
+    # Enable nodes in the compositor
     bpy.context.scene.use_nodes = True
     tree = bpy.context.scene.node_tree
 
+    # Clear existing nodes in the compositor
     tree.nodes.clear()
-    
-    render_layers = tree.nodes.new('CompositorNodeRLayers')
 
+    # Add nodes
+    render_layers = tree.nodes.new('CompositorNodeRLayers')
+    math_greater_than = tree.nodes.new(type="CompositorNodeMath")
+    set_value = tree.nodes.new(type="CompositorNodeValue")
+    map_range = tree.nodes.new(type="CompositorNodeMapRange")
     normalize = tree.nodes.new(type="CompositorNodeNormalize")
 
-    map_range = tree.nodes.new(type="CompositorNodeMapRange")
-    
-    map_range.inputs['From Min'].default_value = 0
-    map_range.inputs['From Max'].default_value = 1
-    map_range.inputs['To Min'].default_value = 1
-    map_range.inputs['To Max'].default_value = 0
+    # Set the maximum depth threshold, simulating the D435 max range
+    max_depth = 10.0  # Example: max range in meters
 
+  
+
+    # Configure output file node
     file_output = tree.nodes.new(type="CompositorNodeOutputFile")
     file_output.format.file_format = 'PNG'
-    file_output.base_path = props.image_dir_path
-    
+    file_output.format.compression = 0
+    #Set color depth to 16 bit
+    file_output.format.color_depth = '16'
+    file_output.base_path = props.image_dir_path  # Ensure props.image_dir_path is defined
+
     # Remove default slot and create named slots
     file_output.file_slots.clear()
     file_output.file_slots.new('rgb')
-    file_output.file_slots.new('depth')
+    if not label:
+        file_output.file_slots.new('depth')
+          # Set up the "greater than" condition for out-of-range depth
+        math_greater_than.operation = 'GREATER_THAN'
+        math_greater_than.inputs[1].default_value = max_depth  # Threshold for maximum depth
 
+        # Set out-of-range values to 0
+        set_value.outputs[0].default_value = 0
+
+        # Use a Mix node to replace out-of-range depth with 0
+        mix = tree.nodes.new(type="CompositorNodeMixRGB")
+        mix.blend_type = 'MIX'
+        mix.inputs[0].default_value = 1.0
+        tree.links.new(math_greater_than.outputs[0], mix.inputs[0])  # Connect greater_than to Mix factor
+        tree.links.new(render_layers.outputs['Depth'], mix.inputs[1])  # Original depth
+        tree.links.new(set_value.outputs[0], mix.inputs[2])  # 0 if out of range
+
+        # Configure the Map Range node to normalize depth
+        map_range.inputs['From Min'].default_value = 0       # Minimum depth
+        map_range.inputs['From Max'].default_value = max_depth # Maximum depth
+        map_range.inputs['To Min'].default_value = 0         # Normalize from 0
+        map_range.inputs['To Max'].default_value = 1         # Normalize to 1
+
+        # Link nodes for depth output
+        tree.links.new(render_layers.outputs['Depth'], math_greater_than.inputs[0])
+        tree.links.new(mix.outputs[0], map_range.inputs[0])
+        tree.links.new(map_range.outputs[0], normalize.inputs[0])
+        tree.links.new(normalize.outputs[0], file_output.inputs['depth'])
+
+    # Link RGB output
     tree.links.new(render_layers.outputs['Image'], file_output.inputs['rgb'])
-    tree.links.new(render_layers.outputs['Depth'], normalize.inputs[0])
-    tree.links.new(normalize.outputs[0], map_range.inputs[0])
-    tree.links.new(map_range.outputs[0], file_output.inputs['depth'])
 
     return file_output
-
 
 def take_images(self, context):
     global sun_or
@@ -51,6 +82,10 @@ def take_images(self, context):
 
     bpy.context.scene.render.resolution_x = props.resolution_X
     bpy.context.scene.render.resolution_y = props.resolution_Y
+    bpy.context.view_layer.use_pass_z = True
+
+
+
     nx, ny = (props.tree_rows, props.tree_columns)
     for cam in bpy.data.cameras:
         cam.lens = focal_length
@@ -141,10 +176,84 @@ def take_images(self, context):
         material = None
         material_name = "Unset"
         selected_tree_idx = selected_tree
+        # Set render engine
+
         # Slight variation in camera's location for the second image
         slight_variation = random.uniform(-0.1, 0.1)  # Adjust this as needed
-        for label in [True, False]:
+        for label in [False, True]:
             print(f"Label: {label}")
+            if label:
+                engine = "eevee"
+                # bpy.context.scene.eevee.use_taa_render = False  # Disable TAA for final render
+                # bpy.context.scene.eevee.use_taa_reprojection = False  # Disable TAA in viewport
+                if engine == "eevee":
+                    bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+                    # Settings for Eevee low-sample (true color) render
+                    bpy.context.scene.eevee.taa_render_samples = 1  # Set render samples to 1
+                    bpy.context.scene.eevee.taa_samples = 1  # Set viewport samples to 1
+                    bpy.context.scene.eevee.use_ssr = False  # Disable Screen Space Reflections
+                    bpy.context.scene.eevee.use_bloom = False  # Disable Bloom
+                    bpy.context.scene.eevee.use_gtao = False  # Disable Ambient Occlusion
+                    bpy.context.scene.eevee.use_soft_shadows = False  # Disable Soft Shadows
+
+                    bpy.context.scene.view_settings.view_transform = 'Standard'
+
+                elif engine == "cycles":
+                    bpy.context.scene.render.engine = 'CYCLES'
+                    bpy.context.scene.cycles.device = 'GPU'
+                    # Settings for Cycles low-sample (true color) render
+                    bpy.context.scene.cycles.samples = 1  # Set render samples to 1
+                    bpy.context.scene.cycles.preview_samples = 1  # Set viewport samples to 1
+                    bpy.context.scene.cycles.pixel_filter_type = 'BOX'
+                    bpy.context.scene.cycles.filter_width = 1.0
+                    bpy.context.scene.cycles.max_bounces = 0  # Disable all indirect light bounces
+                    bpy.context.scene.cycles.diffuse_bounces = 0
+                    bpy.context.scene.cycles.glossy_bounces = 0
+                    bpy.context.scene.cycles.transmission_bounces = 0
+                    bpy.context.scene.cycles.transparent_max_bounces = 0
+
+                    bpy.context.scene.view_settings.view_transform = 'Standard'
+
+                # High-quality render settings
+                else:
+                    engine = "cycles"
+                    if engine == "eevee":
+                        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+                        # Settings for Eevee high-sample render
+                        bpy.context.scene.eevee.taa_render_samples = 64  # Set render samples to 64
+                        bpy.context.scene.eevee.taa_samples = 16  # Set viewport samples to 16
+                        bpy.context.scene.eevee.use_ssr = True  # Enable Screen Space Reflections
+                        bpy.context.scene.eevee.use_bloom = True  # Enable Bloom
+                        bpy.context.scene.eevee.use_gtao = True  # Enable Ambient Occlusion
+                        bpy.context.scene.eevee.use_soft_shadows = True  # Enable Soft Shadows
+
+                    elif engine == "cycles":
+                        bpy.context.scene.render.engine = 'CYCLES'
+                        bpy.context.scene.cycles.device = 'GPU'
+                        # Settings for Cycles high-sample render
+                        bpy.context.scene.cycles.samples = 128  # Set render samples to 128 (or any desired high quality)
+                        bpy.context.scene.cycles.preview_samples = 64  # Set viewport samples to 64
+                        bpy.context.scene.cycles.pixel_filter_type = 'GAUSSIAN'
+                        bpy.context.scene.cycles.filter_width = 1.5
+                        bpy.context.scene.cycles.max_bounces = 12  # Set high bounces for more realistic lighting
+                        bpy.context.scene.cycles.diffuse_bounces = 4
+                        bpy.context.scene.cycles.glossy_bounces = 4
+                        bpy.context.scene.cycles.transmission_bounces = 12
+                        bpy.context.scene.cycles.transparent_max_bounces = 8
+
+                    bpy.context.scene.view_settings.view_transform = 'Filmic'
+
+
+                # Settings for unlabeled (realistic) images
+                # pass
+                # bpy.context.scene.render.engine = 'CYCLES'  # Or 'BLENDER_EEVEE'
+                # bpy.context.scene.world.use_nodes = True  # Enable environmental lighting for realism
+                # camera = bpy.data.objects['Camera']
+
+                # # Set clipping parameters
+                # camera.data.clip_start = 0.1  # Near clipping plane
+                # camera.data.clip_end = 1000.0  # Far clipping plane
+
             if props.snap_image:
                 #If label is False, set active materia for all tree objects to the first one
                 for obj in bpy.data.objects:
@@ -163,12 +272,14 @@ def take_images(self, context):
 
                         if label:
                             # Determine which material to assign based on the label
-                            material_name = "mat_labelled_tree" if selected_tree_root in obj.name else "mat_labelled_black"
+                            #Split obj name by _
+                            obj_root, obj_label = obj.name.split("_")
+                            material_name = "mat_labelled_tree" if obj_root==selected_tree_root else "mat_labelled_black"
                             # print(obj.name, material_name)
                             material = bpy.data.materials.get(material_name)
                         else:
                             material = random.choice(mat_tex)
-                        obj.data.materials.append(material)
+                        # obj.data.materials.append(material)
                     elif "ground" in obj.name:
                         material_name = "mat_labelled_ground" if label else "mat_ground"
                         if label:
@@ -182,7 +293,7 @@ def take_images(self, context):
                             if post_idx == selected_tree_idx*2 or post_idx == selected_tree_idx*2 + 1:
                                 material_name = "mat_labelled_post"
                             else:
-                                material_name = "mat_labelled_black"
+                                material_name = "mat_labelled_orange"
                         else:
                             material_name = "mat_post"
                         material = bpy.data.materials.get(material_name)
@@ -192,7 +303,7 @@ def take_images(self, context):
                             if trellis_idx == selected_tree_idx // 4: #nx
                                 material_name = "mat_labelled_wire"
                             else:
-                                material_name = "mat_labelled_black"
+                                material_name = "mat_labelled_cyan"
                         else:
                             material_name = "mat_wire"
                         material = bpy.data.materials.get(material_name)
@@ -225,26 +336,51 @@ def take_images(self, context):
                 # taking pairs of images
                 if props.image_pairs:
                     cam_obj.location = (camera_x, camera_y, camera_z)
-                    setup_composite_nodes(props)
+                    file_output = setup_composite_nodes(props, label=label)
 
-                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
+                    # bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
+                    label_type = "labeled" if label else "unlabeled"
+                    base_filename = f"tree_{i:04d}__pair_1_{label_type}"
+
+                    rgb_filename = f"{base_filename}_rgb_"
+                    depth_filename = f"{base_filename}_depth_"
+
+                    file_output.file_slots['rgb'].path = rgb_filename
+                    if not label:
+                        file_output.file_slots['depth'].path = depth_filename
+               
                     bpy.ops.render.render(write_still=True)
 
                     # Re-setup for second set of photos
-                    setup_composite_nodes(props)
-                    
+                    file_output = setup_composite_nodes(props, label=label)
+                    base_filename = f"tree_{i:04d}__pair_2_{label_type}"
+
+                    rgb_filename = f"{base_filename}_rgb_"
+                    depth_filename = f"{base_filename}_depth_"
+
+                    file_output.file_slots['rgb'].path = rgb_filename
+                    if not label:
+                        file_output.file_slots['depth'].path = depth_filename
                     cam_obj.location = (camera_x + slight_variation, camera_y + slight_variation, camera_z + slight_variation)
                     
-                    bpy.context.scene.render.filepath = f"{props.image_dir_path}tree_{i:04d}_pair_1_{str(label)}.png"
                     bpy.ops.render.render(write_still=True)
                     continue
 
             # Render the image and save it. Change the formatting to suit your needs
 
-            if not props.image.pairs:
-                file_output = setup_composite_nodes(props)
+            if not props.image_pairs:
+                file_output = setup_composite_nodes(props, label=label)
+                label_type = "labeled" if label else "unlabeled"
+                base_filename = f"tree_{i:04d}_{label_type}"
 
-                bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}_{str(label)}.png"
+                rgb_filename = f"{base_filename}_rgb_"
+                depth_filename = f"{base_filename}_depth_"
+
+                file_output.file_slots['rgb'].path = rgb_filename
+                if not label:
+                    file_output.file_slots['depth'].path = depth_filename
+               
+                # bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}_{str(label)}.png"
 
                 bpy.ops.render.render(write_still=True)
 
