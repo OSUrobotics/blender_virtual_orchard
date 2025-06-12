@@ -2,7 +2,14 @@ import bpy
 import random
 import math
 from . helpers import load_scene
-from .builders import create_sky_color, create_sky_texture, create_sun, fibonacci_hemisphere
+from .builders import (
+    create_sky_color,
+    create_sky_texture,
+    create_sun,
+    fibonacci_hemisphere,
+    create_sine,
+    make_camera_follow_curve,
+)
 
 sun_or = fibonacci_hemisphere(30)
 
@@ -392,15 +399,11 @@ def take_video(self, context):
     scene.frame_start = 1
     scene.frame_end = frame_count
 
-    curve = bpy.data.objects.get("campath")
-    if curve:
-        curve.data.use_path = True
-        curve.data.path_duration = frame_count
-        curve.data.eval_time = 0
-        curve.data.keyframe_insert(data_path="eval_time", frame=1)
-        curve.data.eval_time = frame_count
-        curve.data.keyframe_insert(data_path="eval_time", frame=frame_count)
+    # Remove any pre-existing camera path so we can create a fresh one
+    if "campath" in bpy.data.objects:
+        bpy.data.objects.remove(bpy.data.objects["campath"], do_unlink=True)
 
+    # Determine the Y position of each tree row
     row_positions = []
     for r in range(ny):
         tree_name = f"tree{r * nx}_TRUNK"
@@ -408,11 +411,27 @@ def take_video(self, context):
         if t:
             row_positions.append(t.location.y)
 
-    if row_positions:
-        cam_y = cam_obj.location.y
-        selected_row_idx = min(range(len(row_positions)), key=lambda i: abs(row_positions[i] - cam_y))
-    else:
-        selected_row_idx = 0
+    # Choose the first row by default
+    selected_row_idx = 0
+    row_y = row_positions[selected_row_idx] if row_positions else 0.0
+
+    # Generate a sine path directly in front of the selected row
+    offset = (
+        props.cam_offset[0],
+        row_y + props.cam_offset[1],
+        props.cam_offset[2],
+    )
+    create_sine(numCycles=7, stepsPerCycle=8, zscale=0.7, curvelen=10, offset=offset)
+    curve = bpy.data.objects.get("campath")
+    if curve:
+        make_camera_follow_curve(cam_obj, curve)
+        curve.data.use_path = True
+        curve.data.path_duration = frame_count
+        curve.data.eval_time = 0
+        curve.data.keyframe_insert(data_path="eval_time", frame=1)
+        curve.data.eval_time = frame_count
+        curve.data.keyframe_insert(data_path="eval_time", frame=frame_count)
+
 
     mat_tex = [m for m in bpy.data.materials if "texture" in m.name and "ground" not in m.name]
     mat_ground = [m for m in bpy.data.materials if "texture_ground" in m.name]
