@@ -2,7 +2,14 @@ import bpy
 import random
 import math
 from . helpers import load_scene
-from .builders import create_sky_color, create_sky_texture, create_sun, fibonacci_hemisphere
+from .builders import (
+    create_sky_color,
+    create_sky_texture,
+    create_sun,
+    fibonacci_hemisphere,
+    create_sine,
+    make_camera_follow_curve,
+)
 
 sun_or = fibonacci_hemisphere(30)
 
@@ -384,5 +391,47 @@ def take_images(self, context):
 
                 bpy.ops.render.render(write_still=True)
 
+
+def take_video(self, context):
+    """Animate the camera along a path and render a video"""
+    props = context.scene.my_tool
+    cam_obj = bpy.data.objects.get("Camera")
+    if cam_obj is None:
+        return
+
+    # Remove any existing parent or follow path constraints
+    cam_obj.parent = None
+    for con in cam_obj.constraints:
+        if con.type == 'FOLLOW_PATH':
+            cam_obj.constraints.remove(con)
+
+    # Remove existing path if present
+    if "campath" in bpy.data.objects:
+        bpy.data.objects.remove(bpy.data.objects["campath"], do_unlink=True)
+
+    # Recreate the path and attach the camera
+    create_sine(numCycles=7, stepsPerCycle=8, zscale=0.7, curvelen=10, offset=props.cam_offset)
+    curve = bpy.context.scene.objects["campath"]
+    curve.data.animation_data_clear()
+    cam_obj.animation_data_clear()
+
+    make_camera_follow_curve(cam_obj, curve)
+
+    constraint = None
+    for con in cam_obj.constraints:
+        if con.type == 'FOLLOW_PATH':
+            constraint = con
+            break
+    if constraint is None:
+        constraint = cam_obj.constraints.new('FOLLOW_PATH')
+        constraint.target = curve
+
+    constraint.use_fixed_location = True
+
+    constraint.offset_factor = 0.0
+    constraint.keyframe_insert(data_path="offset_factor", frame=1)
+
+    constraint.offset_factor = 1.0
+    constraint.keyframe_insert(data_path="offset_factor", frame=props.video_frame_count)
         
 

@@ -175,7 +175,14 @@ Useful for adjusting desired camera parameters""",
         description="Number of images to be taken",
         default=1,
         min=0,
-    )    
+    )
+
+    video_frame_count: bpy.props.IntProperty(
+        name="Video frames",
+        description="Total number of frames when recording video",
+        default=120,
+        min=1,
+    )
 
     focal_length: bpy.props.FloatProperty(
         name="focal length",
