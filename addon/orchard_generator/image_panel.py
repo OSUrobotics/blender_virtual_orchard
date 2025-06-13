@@ -18,11 +18,13 @@ class MY_PT_RenderImagesPanel(Panel):
 
         row = layout.row()
         row.operator("object.take_images")
+        row.operator("object.take_video")
 
         row = layout.row(align=True)
         row.prop(props, "snap_image")
         row.prop(props, "random_tree")
         row.prop(props, "image_pairs")
+        row.prop(props, "make_video")
 
         if props.snap_image:
             row = layout.row()
@@ -41,6 +43,12 @@ class MY_PT_RenderImagesPanel(Panel):
             row = layout.row()
             row.prop(props, "resolution_X")
             row.prop(props, "resolution_Y")
+
+        if props.make_video:
+            row = layout.row()
+            row.prop(props, "video_dir_path")
+            row = layout.row()
+            row.prop(props, "video_frame_count")
         
         layout.label(text="Camera extrinsics:")
         row = layout.row()

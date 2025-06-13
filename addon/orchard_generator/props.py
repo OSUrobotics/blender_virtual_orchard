@@ -163,6 +163,26 @@ Useful for adjusting desired camera parameters""",
         default= False,
     )
 
+    make_video: bpy.props.BoolProperty(
+        name="Take video",
+        description="Toggle on to record a video instead of images",
+        default=False,
+    )
+
+    video_dir_path: bpy.props.StringProperty(
+        name="Video dir path",
+        description="Select the directory to store the rendered video",
+        default="path to dir for video storage...",
+        maxlen=1024,
+        subtype="DIR_PATH")
+
+    video_frame_count: bpy.props.IntProperty(
+        name="Video frames",
+        description="Number of frames in the output video",
+        default=250,
+        min=1,
+    )
+
     image_dir_path: bpy.props.StringProperty(
         name="Images dir path",
         description="Select the directory to store images taken",

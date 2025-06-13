@@ -122,6 +122,7 @@ def take_images(self, context):
             selected_tree = 0
 
         selected_tree_root = f"tree{selected_tree}"
+        selected_row_idx = selected_tree // nx
         tree_spur = bpy.data.objects[selected_tree_root + "_SPUR"]
         tree_branch = bpy.data.objects[selected_tree_root + "_BRANCH"]
         tree_trunk = bpy.data.objects[selected_tree_root + "_TRUNK"]        # Get tree dimensions
@@ -182,7 +183,6 @@ def take_images(self, context):
         load_scene()
         material = None
         material_name = "Unset"
-        selected_tree_idx = selected_tree
         # Set render engine
 
         # Slight variation in camera's location for the second image
@@ -279,10 +279,9 @@ def take_images(self, context):
 
                         if label:
                             # Determine which material to assign based on the label
-                            #Split obj name by _
                             obj_root, obj_label = obj.name.split("_")
-                            material_name = "mat_labelled_tree" if obj_root==selected_tree_root else "mat_labelled_black"
-                            # print(obj.name, material_name)
+                            idx = int(obj_root[4:])
+                            material_name = "mat_labelled_tree" if idx // nx == selected_row_idx else "mat_labelled_black"
                             material = bpy.data.materials.get(material_name)
                         else:
                             material = random.choice(mat_tex)
@@ -297,20 +296,15 @@ def take_images(self, context):
                     elif "post" in obj.name:
                         post_idx = int(obj.name[4:])
                         if label:
-                            if post_idx == selected_tree_idx*2 or post_idx == selected_tree_idx*2 + 1:
-                                material_name = "mat_labelled_post"
-                            else:
-                                material_name = "mat_labelled_orange"
+                            tree_idx = post_idx // 2
+                            material_name = "mat_labelled_post" if tree_idx // nx == selected_row_idx else "mat_labelled_orange"
                         else:
                             material_name = "mat_post"
                         material = bpy.data.materials.get(material_name)
                     elif "wire" in obj.name:
-                        trellis_idx = int(obj.name[4:5])
+                        trellis_idx = int(obj.name.split('_')[0][4:])
                         if label:
-                            if trellis_idx == selected_tree_idx // 4: #nx
-                                material_name = "mat_labelled_wire"
-                            else:
-                                material_name = "mat_labelled_cyan"
+                            material_name = "mat_labelled_wire" if trellis_idx == selected_row_idx else "mat_labelled_cyan"
                         else:
                             material_name = "mat_wire"
                         material = bpy.data.materials.get(material_name)
@@ -389,7 +383,8 @@ def take_images(self, context):
                
                 # bpy.context.scene.render.filepath = f"{props.image_dir_path}image_{i:04d}_{str(label)}.png"
 
-                bpy.ops.render.render(write_still=True)
+        bpy.ops.render.render(write_still=True)
+
 
 
 def take_video(self, context):
@@ -433,5 +428,94 @@ def take_video(self, context):
 
     constraint.offset_factor = 1.0
     constraint.keyframe_insert(data_path="offset_factor", frame=props.video_frame_count)
-        
+  
+    nx, ny = (props.tree_rows, props.tree_columns)
 
+    frame_count = props.video_frame_count
+    scene.frame_start = 1
+    scene.frame_end = frame_count
+
+    # Determine the Y position of each tree row
+    row_positions = []
+    for r in range(ny):
+        tree_name = f"tree{r * nx}_TRUNK"
+        t = bpy.data.objects.get(tree_name)
+        if t:
+            row_positions.append(t.location.y)
+
+    # Choose the first row by default
+    selected_row_idx = 0
+    row_y = row_positions[selected_row_idx] if row_positions else 0.0
+
+    # Generate a sine path directly in front of the selected row
+    offset = (
+        props.cam_offset[0],
+        row_y + props.cam_offset[1],
+        props.cam_offset[2],
+    )
+    create_sine(numCycles=7, stepsPerCycle=8, zscale=0.7, curvelen=10, offset=offset)
+    curve = bpy.data.objects.get("campath")
+    if curve:
+        make_camera_follow_curve(cam_obj, curve)
+        curve.data.use_path = True
+        curve.data.path_duration = frame_count
+        curve.data.eval_time = 0
+        curve.data.keyframe_insert(data_path="eval_time", frame=1)
+        curve.data.eval_time = frame_count
+        curve.data.keyframe_insert(data_path="eval_time", frame=frame_count)
+
+
+    mat_tex = [m for m in bpy.data.materials if "texture" in m.name and "ground" not in m.name]
+    mat_ground = [m for m in bpy.data.materials if "texture_ground" in m.name]
+
+    for label in [False, True]:
+        for obj in bpy.data.objects:
+            if "tree" in obj.name:
+                obj_root, _ = obj.name.split("_")
+                idx = int(obj_root[4:])
+                if label:
+                    material_name = "mat_labelled_tree" if idx // nx == selected_row_idx else "mat_labelled_black"
+                    material = bpy.data.materials.get(material_name)
+                else:
+                    material = random.choice(mat_tex)
+            elif "ground" in obj.name:
+                if label:
+                    material = bpy.data.materials.get("mat_labelled_ground")
+                else:
+                    material = random.choice(mat_ground)
+            elif "post" in obj.name:
+                post_idx = int(obj.name[4:])
+                if label:
+                    tree_idx = post_idx // 2
+                    material_name = "mat_labelled_post" if tree_idx // nx == selected_row_idx else "mat_labelled_orange"
+                    material = bpy.data.materials.get(material_name)
+                else:
+                    material = bpy.data.materials.get("mat_post")
+            elif "wire" in obj.name:
+                trellis_idx = int(obj.name.split('_')[0][4:])
+                if label:
+                    material_name = "mat_labelled_wire" if trellis_idx == selected_row_idx else "mat_labelled_cyan"
+                    material = bpy.data.materials.get(material_name)
+                else:
+                    material = bpy.data.materials.get("mat_wire")
+            else:
+                continue
+
+            if obj.data.materials:
+                obj.data.materials[0] = material
+            else:
+                obj.data.materials.append(material)
+
+        if label:
+            create_sky_color()
+            scene.render.engine = 'BLENDER_EEVEE'
+            scene.eevee.taa_render_samples = 1
+        else:
+            create_sky_texture()
+            create_sun(random.choice(sun_or))
+            scene.render.engine = 'CYCLES'
+
+        scene.render.image_settings.file_format = 'FFMPEG'
+        scene.render.ffmpeg.format = 'MPEG4'
+        scene.render.filepath = os.path.join(props.video_dir_path, f"orchard_{'labeled' if label else 'unlabeled'}.mp4")
+        bpy.ops.render.render(animation=True)
