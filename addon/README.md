@@ -75,7 +75,11 @@
     The formatting for how the images are stored should be tweaked to fit your needs. Currently the \
     files get overridden each render
 
-11. **Dumping Properties:**
+11. **Taking Video:**
+    - Enable `Take video` and specify a directory and frame count.
+    - Click `TAKE VIDEO` to record a labeled and unlabeled video along the sine wave path.
+
+12. **Dumping Properties:**
     - All properties are saved to a JSON file in the `dumps' directory with a timestamp for future reference.
 
 ### JSON Configuration

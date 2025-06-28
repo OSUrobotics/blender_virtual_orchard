@@ -163,6 +163,26 @@ Useful for adjusting desired camera parameters""",
         default= False,
     )
 
+    make_video: bpy.props.BoolProperty(
+        name="Take video",
+        description="Toggle on to record a video instead of images",
+        default=False,
+    )
+
+    video_dir_path: bpy.props.StringProperty(
+        name="Video dir path",
+        description="Select the directory to store the rendered video",
+        default="path to dir for video storage...",
+        maxlen=1024,
+        subtype="DIR_PATH")
+
+    video_frame_count: bpy.props.IntProperty(
+        name="Video frames",
+        description="Number of frames in the output video",
+        default=250,
+        min=1,
+    )
+
     image_dir_path: bpy.props.StringProperty(
         name="Images dir path",
         description="Select the directory to store images taken",
@@ -175,7 +195,14 @@ Useful for adjusting desired camera parameters""",
         description="Number of images to be taken",
         default=1,
         min=0,
-    )    
+    )
+
+    video_frame_count: bpy.props.IntProperty(
+        name="Video frames",
+        description="Total number of frames when recording video",
+        default=120,
+        min=1,
+    )
 
     focal_length: bpy.props.FloatProperty(
         name="focal length",
@@ -354,5 +381,13 @@ Useful for adjusting desired camera parameters""",
         min=-2*np.pi,
         max=2*np.pi,
         update=take_images
+    )
+
+    campath_frequency: bpy.props.IntProperty(
+        name="Campath Frequency",
+        description="Number of sine cycles for the camera path",
+        default=28,
+        min=1,
+        max=100
     )
 

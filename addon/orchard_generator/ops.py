@@ -1,6 +1,6 @@
 import bpy
 from . load_script_label import render
-from . generate_images import take_images
+from . generate_images import take_images, take_video
 
 class GenerateOrchardOperator(bpy.types.Operator):
     """Calls the render function to generate orchard"""
@@ -26,6 +26,21 @@ class OBJECT_OT_take_image(bpy.types.Operator):
 
     def execute(self, context):
         take_images(self, context)
+        return {'FINISHED'}
+
+
+class OBJECT_OT_take_video(bpy.types.Operator):
+    """Render video following the sine path"""
+    bl_idname = "object.take_video"
+    bl_label = "TAKE VIDEO"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.my_tool.make_video and context.scene.my_tool.orchard_generated
+
+    def execute(self, context):
+        take_video(self, context)
         return {'FINISHED'}
 
 
