@@ -79,32 +79,58 @@ def apply_transform(loc, center_x, center_y, tree_orientation):
     transformed_loc = transform_matrix @ mathutils.Vector((loc[0] - center_x, loc[1] - center_y, loc[2]))
     return transformed_loc
 
-def create_sine(numCycles = 1, stepsPerCycle = 16, curvelen=2, zscale=1.5, offset = (0,0,0), noise_var = (0,0,0)):
+def create_sine(numCycles=1, stepsPerCycle=16, curvelen=2, zscale=1.5, offset=(0,0,0), noise_var=(0,0,0)):
+    name = "campath"
+    if name in bpy.data.objects:
+        bpy.data.objects.remove(bpy.data.objects[name], do_unlink=True)
 
-    curve = bpy.data.curves.new('path', type='CURVE')
-    curve.dimensions = '2D'
-    curve.resolution_u = 1
-    spline = curve.splines.new('NURBS')
+    curve_data = bpy.data.curves.new(name, type='CURVE')
+    curve_data.dimensions = '3D'
+    curve_data.resolution_u = 12
+    curve_data.use_path = True
+    # curve_data.path_duration = 250  # Path animation enabled
+
+    spline = curve_data.splines.new('NURBS')
+    num_points = stepsPerCycle * numCycles
+    spline.points.add(num_points)  # Already has 1
+
+    xscale = curvelen / num_points
+    for i in range(num_points + 1):
+        x = i * xscale
+        z = math.sin(i / stepsPerCycle * math.pi * 2) * zscale
+        spline.points[i].co = (x + offset[0], offset[1], z + offset[2], 1.0)
+
+    spline.order_u = 4
+
+    curve_obj = bpy.data.objects.new(name, curve_data)
+    bpy.context.scene.collection.objects.link(curve_obj)
+    return curve_obj
+# def create_sine(numCycles = 1, stepsPerCycle = 16, curvelen=2, zscale=1.5, offset = (0,0,0), noise_var = (0,0,0)):
+
+#     curve = bpy.data.curves.new('path', type='CURVE')
+#     curve.dimensions = '2D'
+#     curve.resolution_u = 1
+#     spline = curve.splines.new('NURBS')
     
-    #cursor = bpy.context.scene.cursor_location
-    xscale = float(curvelen)/stepsPerCycle/numCycles
+#     #cursor = bpy.context.scene.cursor_location
+#     xscale = float(curvelen)/stepsPerCycle/numCycles
     
-    for x in range(0, stepsPerCycle * numCycles+1):
-        noise = np.random.normal(loc=0.0, scale=noise_var, size=3)
-        z = math.sin(float(x) / stepsPerCycle * math.pi*2) 
+#     for x in range(0, stepsPerCycle * numCycles+1):
+#         noise = np.random.normal(loc=0.0, scale=noise_var, size=3)
+#         z = math.sin(float(x) / stepsPerCycle * math.pi*2) 
 
-        #Add first point for start of Nurbs (needs extra point)
-        if x == 0:
-            spline.points[0].co = (x*xscale+offset[0]+noise[0], 0+offset[1]+noise[1], z*zscale+offset[2]+noise[2],1) 
+#         #Add first point for start of Nurbs (needs extra point)
+#         if x == 0:
+#             spline.points[0].co = (x*xscale+offset[0]+noise[0], 0+offset[1]+noise[1], z*zscale+offset[2]+noise[2],1) 
 
-        # Add point
-        spline.points.add(1)
-        spline.points[-1].co = ((x*xscale+offset[0]+noise[0], 0+offset[1]+noise[1], z*zscale+offset[2]+noise[2],1))
-    # Add end point
-    spline.points.add(1)
-    spline.points[-1].co =(x*xscale+offset[0]+noise[0], 0+offset[1]+noise[1], z*zscale+offset[2]+noise[2],1)
-    curveObject = bpy.data.objects.new('campath', curve)
-    bpy.context.scene.collection.objects.link(curveObject)
+#         # Add point
+#         spline.points.add(1)
+#         spline.points[-1].co = ((x*xscale+offset[0]+noise[0], 0+offset[1]+noise[1], z*zscale+offset[2]+noise[2],1))
+#     # Add end point
+#     spline.points.add(1)
+#     spline.points[-1].co =(x*xscale+offset[0]+noise[0], 0+offset[1]+noise[1], z*zscale+offset[2]+noise[2],1)
+#     curveObject = bpy.data.objects.new('campath', curve)
+#     bpy.context.scene.collection.objects.link(curveObject)
 
 def new_plane(mylocation, mysize, myname):
     bpy.ops.mesh.primitive_plane_add(
@@ -287,6 +313,8 @@ def create_new_material_with_texture(name, obj, texture_path):
     texture_b = nodes.new( type = 'ShaderNodeTexImage')
     texture_c = nodes.new( type = 'ShaderNodeTexImage')
     texture_d = nodes.new( type = 'ShaderNodeTexImage')
+
+    diffuse.inputs['Roughness'].default_value = 1.0  # Set roughness to 1
    
     texture_a.image = bpy.data.images.load(texture_path+'_diff_4k.jpg')
 #        texture_a.image.colorspace_settings.name = 'Non-Color'
@@ -323,13 +351,34 @@ def create_new_material_with_texture(name, obj, texture_path):
     else:
         # no slots
         obj.data.materials.append(material)
-    
-def make_camera_follow_curve(cam_obj, curve):   
-    cam_obj.rotation_euler = mathutils.Euler((np.pi/2,0,-np.pi/2), 'XYZ')
-    cam_obj.select_set(True)
-    bpy.context.view_layer.objects.active = curve
-    bpy.ops.object.parent_set(type='FOLLOW')
-    bpy.context.object.track_axis = 'NEG_Y'
+
+# camera.select = True
+# lamp.select = True
+# path.select = True
+
+# bpy.context.scene.objects.active = path #parent
+
+# bpy.ops.object.parent_set(type='FOLLOW') #follow path
+def make_camera_follow_curve(cam_obj, curve_obj, frame_start=1, frame_end=250):
+    # Ensure curve has path info
+    curve_data = curve_obj.data
+    # curve_data.use_path = True
+    curve_data.path_duration = 200
+    # reset_camera(cam_obj)
+    # Clear all constraints
+    # cam_obj.constraints.clear()
+    # Remove existing FOLLOW_PATH constraints
+    for c in cam_obj.constraints:
+        cam_obj.constraints.remove(c)
+     
+    # cam_obj.select_set(True)
+
+    # bpy.context.view_layer.objects.active = curve_obj
+    # bpy.ops.object.parent_set(type='FOLLOW')
+    # bpy.context.object.track_axis = 'NEG_Y'
+    follow_constraint = cam_obj.constraints.new(type='FOLLOW_PATH')
+    follow_constraint.target = curve_obj
+    follow_constraint.use_curve_follow = True
     constraint = cam_obj.constraints.new("LIMIT_ROTATION")
     constraint.use_limit_x = True
     constraint.use_limit_y = True
@@ -340,6 +389,14 @@ def make_camera_follow_curve(cam_obj, curve):
     constraint.min_z = -3.14
     constraint.max_y = 0
     constraint.min_y = 0
+
+    bpy.context.scene.frame_set(frame_start)
+
+    # Animate the path: add F-Curve keyframes for eval_time
+    curve_data.eval_time = 0
+    curve_data.keyframe_insert(data_path="eval_time", frame=frame_start)
+    curve_data.eval_time = (frame_end - frame_start)/20
+    curve_data.keyframe_insert(data_path="eval_time", frame=frame_end)
 
     
 # Clear all nodes in a mat

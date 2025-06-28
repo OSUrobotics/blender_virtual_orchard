@@ -49,6 +49,8 @@ class MY_PT_RenderImagesPanel(Panel):
             row.prop(props, "video_dir_path")
             row = layout.row()
             row.prop(props, "video_frame_count")
+            row = layout.row()
+            row.prop(props, "campath_frequency")
         
         layout.label(text="Camera extrinsics:")
         row = layout.row()

@@ -383,3 +383,11 @@ Useful for adjusting desired camera parameters""",
         update=take_images
     )
 
+    campath_frequency: bpy.props.IntProperty(
+        name="Campath Frequency",
+        description="Number of sine cycles for the camera path",
+        default=28,
+        min=1,
+        max=100
+    )
+
