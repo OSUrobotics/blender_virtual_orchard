@@ -2,7 +2,7 @@ import pymeshlab
 from glob import glob
 import os
 remove = False
-folder = "tree_dataset/dataset_ufo"
+folder = "dataset_envy_instance"
 
 for file_path in glob(folder+"/*.ply"):
     print("Processing {}".format(file_path))

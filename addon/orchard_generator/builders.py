@@ -167,7 +167,7 @@ def create_new_material_with_vertex_colors(name, obj, type):
         links.new( diffuse.outputs['BSDF'], output.inputs['Surface'] )
     elif type == "emission":
         diffuse = nodes.new( type = 'ShaderNodeEmission' )
-        diffuse.inputs['Strength'].default_value= 10
+        diffuse.inputs['Strength'].default_value = 1
         links.new( input.outputs['Color'], diffuse.inputs['Color'])
         links.new( diffuse.outputs['Emission'], output.inputs['Surface'] )
 
