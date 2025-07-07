@@ -2,12 +2,12 @@ import pymeshlab
 from glob import glob
 import os
 remove = False
-folder = "tree_dataset/dataset_ufo_split"
+folder = "dataset_envy_instance"
 #Regex to match tree_[4-9]_*.obj
 #glob(folder+"/tree_[4-9]_*.obj")
 #Doesnt work
 
-for file_path in glob(folder+"/tree_[4-9]_*.obj"):
+for file_path in glob(folder+"/tree_*.obj"):
     print("Processing {}".format(file_path))
     ms = pymeshlab.MeshSet()
     ms.load_new_mesh(file_path)
