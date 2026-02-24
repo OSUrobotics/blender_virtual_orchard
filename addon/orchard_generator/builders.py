@@ -7,6 +7,7 @@ from typing import List
 from .helpers import load_scene
 import os
 
+
 def add_cylinder(
         size: float = 1.0,
         location: List[float] = [0.0, 0.0, 0.0],
@@ -485,6 +486,7 @@ def clean_blender_data():
     
     
 def load_trees_from_folder(folder_path, num):
+    bpy.ops.preferences.addon_enable(module='io_scene_x3d')
     num_trees = num
     tree_labels = ['SPUR', 'BRANCH', 'TRUNK']
     for num_tree in range(num_trees):

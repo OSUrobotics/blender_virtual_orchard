@@ -15,7 +15,7 @@ Data files - https://oregonstate.box.com/s/h64vg0sa5ttyqx5hocgpcak77mkzsj6b
 
 4. Choose the zip file you just downloaded and ensure the addon is toggled on.
 
-5. To use the addon, press `N` to bring up the sidebar in the View3D menu, and it should be there.
+5. To use the addon, press `N` to bring up the sidebar in the View3D menu, and it should be there. (Or bring up the view menu and select show sidebar). This will add two options to the sidebar; Orchard and Image Render. 
 
 ### Alternative (Highly recommended for development)
 

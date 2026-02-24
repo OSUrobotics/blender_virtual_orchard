@@ -1,6 +1,7 @@
 import bpy
 import random
 import math
+import time
 from . helpers import load_scene
 from .builders import (
     create_sky_color,
@@ -15,7 +16,33 @@ sun_or = fibonacci_hemisphere(30)
 
 def setup_composite_nodes(props, label = False):
     # Enable nodes in the compositor
-    bpy.context.scene.use_nodes = True
+
+    scene = bpy.context.scene
+
+    # 1) Enable compositor for this scene
+    scene.use_nodes = True
+
+    tree = scene.node_tree
+
+    # 3) Start fresh: clear nodes and links
+    tree.nodes.clear()
+    tree.links.clear()
+
+    # 4) Minimal compositor: Render Layers -> Composite (and Viewer for debugging)
+    rl = tree.nodes.new(type="CompositorNodeRLayers")
+    rl.location = (-300, 0)
+
+    comp = tree.nodes.new(type="CompositorNodeComposite")
+    comp.location = (200, 0)
+
+    viewer = tree.nodes.new(type="CompositorNodeViewer")
+    viewer.location = (200, -200)
+
+    links = tree.links
+    links.new(rl.outputs["Image"], comp.inputs["Image"])
+    links.new(rl.outputs["Image"], viewer.inputs["Image"])
+
+    print("Compositor is ready:", tree.name)
     tree = bpy.context.scene.node_tree
 
     # Clear existing nodes in the compositor
